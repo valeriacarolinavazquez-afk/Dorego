@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-mono: "Special Elite", ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-[#e5e5e5] text-black;
+  }
+}
+
+.paper-texture {
+  background-image: url("https://www.transparenttextures.com/patterns/paper.png");
+}
+
+.ink-bleed {
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+}
+
+.rough-border {
+  border-style: solid;
+  border-width: 4px;
+  border-image: linear-gradient(to right, black 50%, transparent 50%) 100% 1; /* Simulates rough edge */
+}
