@@ -354,18 +354,34 @@ function Edition01() {
                   <div className="flex items-center gap-2"><span className="bg-black text-white px-2 py-0.5 not-italic">4</span> ¡BORDAMOS CON MUCHOS COLORES!</div>
                 </div>
                 <div className="mt-8 border-[8px] border-black shadow-[12px_12px_0px_black] overflow-hidden aspect-[9/16] bg-black w-full max-w-[500px] mx-auto relative group">
-                  <div className="absolute top-4 right-4 z-10 bg-red-600 text-white text-xs font-black px-3 py-1 uppercase tracking-widest animate-pulse shadow-[2px_2px_0px_black]">
-                    En Vivo
+                  <div className="absolute top-4 right-4 z-30 bg-red-600 text-white text-[10px] font-black px-3 py-1 uppercase tracking-widest animate-pulse shadow-[2px_2px_0px_black]">
+                    TALLER EN VIVO
                   </div>
+                  
                   <iframe 
-                    src="https://streamable.com/e/mflgt6" 
-                    frameBorder="0" 
+                    src="https://www.youtube.com/embed/GcC5NiTG2Rc?rel=0&modestbranding=1&controls=1" 
                     width="100%" 
                     height="100%" 
-                    allowFullScreen 
-                    title="Mantitas de Bienvenida Video"
-                    className="w-full h-full grayscale-[0.3] group-hover:grayscale-0 transition-all duration-500"
+                    style={{ border: 'none' }} 
+                    frameBorder="0" 
+                    allowFullScreen={true}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    className="w-full h-full transition-all duration-700 relative z-10"
+                    title="Taller de Mantitas de Bienvenida"
                   ></iframe>
+                </div>
+                <div className="text-center mt-4 flex flex-col items-center gap-3">
+                  <a 
+                    href="https://youtube.com/shorts/GcC5NiTG2Rc" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-[10px] font-black uppercase underline hover:text-red-600 opacity-60 flex items-center justify-center gap-1"
+                  >
+                    ¿No se ve? Abrir en YouTube
+                  </a>
+                  <div className="bg-white text-black font-black px-4 py-2 border-2 border-black shadow-[4px_4px_0px_black] uppercase text-[10px] tracking-tight animate-bounce">
+                    Ponle PLAY al video de arriba para iniciar el taller
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -663,6 +679,224 @@ function Edition02() {
   );
 }
 
+// --- EDICIÓN 03 ---
+function Edition03() {
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  const [revealedJokes, setRevealedJokes] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    const birthday = new Date("2026-06-08T00:00:00");
+    const now = new Date();
+    const diff = birthday.getTime() - now.getTime();
+    setDaysLeft(Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }, []);
+
+  const toggleJoke = (id: number) => {
+    setRevealedJokes(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  return (
+    <div className="text-black space-y-12">
+      {/* Top Info Bar - Night/Nature Theme */}
+      <div className="flex justify-between items-end border-b-4 border-indigo-900 pb-4 mb-8">
+        <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter text-indigo-900">
+          <span className="bg-indigo-600 text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black]">VOLUMEN 03</span>
+          DIARIO EL DORREGO • INVESTIGACIÓN EN EL PATIO • SANTA FE • 2026
+        </div>
+        <div className="text-right text-[10px] md:text-sm font-black uppercase text-indigo-600">
+          AÑO I • Nº 003<br />
+          EDICIÓN ESPECIAL: NATURALEZA
+        </div>
+      </div>
+
+      {/* Masthead Vol 03 */}
+      <header id="inicio" className="border-b-[12px] border-indigo-900 pb-8 mb-12 text-center relative">
+        <motion.div 
+          initial={{ scale: 0, rotate: 15 }}
+          animate={{ scale: 1, rotate: -12 }}
+          className="absolute -top-10 -left-4 bg-yellow-400 border-4 border-black p-4 rounded-full font-black text-xs md:text-sm text-black shadow-[6px_6px_0px_black] z-20 animate-pulse"
+        >
+          ¡MIRÁ\nARRIBA!
+        </motion.div>
+        
+        <a href="#inicio" className="block hover:opacity-80 transition-opacity">
+          <h1 className="text-[14vw] md:text-[10rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-black">
+            EL DORREGO
+          </h1>
+        </a>
+        
+        <div className="relative inline-block">
+          <div className="absolute inset-0 bg-yellow-400 transform rotate-1 skew-x-2 translate-y-1"></div>
+          <div className="relative border-4 border-black py-2 px-12 text-2xl md:text-5xl font-black tracking-[0.2em] bg-indigo-900 text-white translate-y-[-4px] shadow-[4px_4px_0px_black]">
+             HALLAZGO NOCTURNO 
+          </div>
+        </div>
+
+        {/* Countdown Vol 03 Style */}
+        <div className="mt-12 flex justify-center">
+          <div className="bg-indigo-600 text-white px-6 py-3 border-4 border-black flex items-center gap-4 shadow-[8px_8px_0px_#fbbf24]">
+            <Calendar className="w-8 h-8 text-yellow-300 animate-spin-slow" />
+            <div className="text-left font-black uppercase tracking-tight">
+              <span className="text-xs block opacity-60">CUENTA REGRESIVA</span>
+              <span className="text-3xl md:text-4xl leading-none text-yellow-400">{daysLeft ?? "?"} DÍAS</span>
+              <span className="text-xs block opacity-60 mt-1">PARA EL GRAN CUMPLE DEL ALERO</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Feature: EL BÚHO */}
+      <section id="buho" className="relative">
+        <div className="bg-indigo-950 text-white border-[10px] border-black p-8 md:p-16 shadow-[15px_15px_0px_#fbbf24] relative overflow-hidden">
+          {/* Decorative Stars */}
+          <div className="absolute top-10 right-10 flex gap-4 opacity-30">
+            <StarIcon className="w-8 h-8 fill-current text-yellow-400" />
+            <StarIcon className="w-4 h-4 fill-current text-yellow-400 translate-y-8" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center relative z-10">
+            <div className="md:col-span-7 space-y-8">
+              <h2 className="text-6xl md:text-8xl font-black uppercase italic leading-none tracking-tighter text-yellow-400">
+                UN VECINO CON PLUMAS
+              </h2>
+              <div className="bg-white/10 p-6 border-l-8 border-yellow-400 backdrop-blur-sm">
+                <p className="text-2xl md:text-3xl font-bold leading-tight italic">
+                  "¡Hay un búho en el patio!" El grito recorrió todo El Alero. En uno de los árboles internos, bien arriba, apareció nuestro nuevo amigo.
+                </p>
+              </div>
+              <p className="text-xl font-bold leading-relaxed opacity-90">
+                Todo el mundo se detiene. Grandes y chicos hacemos silencio para verlo. Dicen que nos cuida desde las alturas con sus ojos gigantes que brillan como linternas. 
+              </p>
+              <div className="flex gap-4">
+                <span className="bg-yellow-400 text-black font-black px-4 py-2 uppercase text-xs transform -rotate-2">#Observación</span>
+                <span className="bg-indigo-600 text-white font-black px-4 py-2 uppercase text-xs transform rotate-2">#SilencioTotal</span>
+              </div>
+            </div>
+
+            <div className="md:col-span-5">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-yellow-400 translate-x-4 translate-y-4 rounded-full"></div>
+                <div className="relative aspect-square rounded-full border-8 border-black bg-indigo-900 overflow-hidden shadow-2xl flex items-center justify-center p-8">
+                  <div className="text-center">
+                    <div className="text-8xl mb-2 animate-bounce">🦉</div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-yellow-400">Ojos de Guardián</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mini Stories: Historias de Búhos para Niños */}
+      <section className="max-w-4xl mx-auto space-y-8">
+        <h2 className="text-4xl font-black uppercase italic text-indigo-900 border-l-8 border-yellow-400 pl-4">
+          CUENTOS CORTOS PARA SOÑAR 🦉
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_indigo] relative group">
+            <h3 className="text-xl font-black uppercase mb-3 text-indigo-700 underline decoration-indigo-200 underline-offset-4">1. EL BÚHO "DOBLE-GUIÑO"</h3>
+            <p className="text-lg font-bold leading-tight italic">
+              Había una vez un búho llamado Pipo que quería guiñar un ojo para ser "cool". Pero cada vez que lo intentaba, cerraba los dos y se quedaba a oscuras en pleno vuelo. ¡PIM! ¡PUM! Chocaba contra las nubes de algodón. Al final descubrió que con sus dos ojos abiertos veía el doble de amigos.
+            </p>
+          </div>
+
+          <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_yellow] relative group transform md:translate-y-4">
+            <h3 className="text-xl font-black uppercase mb-3 text-orange-600 underline decoration-orange-200 underline-offset-4">2. MISIÓN: LUNA DE QUESO</h3>
+            <p className="text-lg font-bold leading-tight italic">
+              Tito el búho estaba convencido de que la luna era un queso Gruyere gigante. Una noche, agarró un pancito con sus garras y voló lo más alto que pudo. No llegó a la luna, pero dice que el aire de arriba tiene gusto a vainilla y que las estrellas son chispitas de chocolate.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-indigo-900 text-white border-4 border-black p-6 shadow-[10px_10px_0px_black] italic font-bold text-center text-xl">
+          "Si miras fijo a un búho, y él te devuelve la mirada... ¡es porque está leyendo el cuento que tenés guardado en la cabeza!"
+        </div>
+      </section>
+
+      {/* Grid: Tareas y Chistes */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="md:col-span-4 space-y-8">
+          <section className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_black] transform rotate-1">
+            <div className="bg-indigo-900 text-white w-12 h-12 flex items-center justify-center font-black text-2xl mb-4">1</div>
+            <h3 className="font-black text-xl mb-4 uppercase">EL ARBOL DEL BÚHO</h3>
+            <p className="font-bold leading-tight italic">
+              No es cualquier árbol. Es su casa. Por eso cuidamos que nadie tire nada cerca y hablamos bajito para no asustarlo.
+            </p>
+          </section>
+
+          <section className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_black] transform -rotate-1">
+            <div className="bg-yellow-400 text-black w-12 h-12 flex items-center justify-center font-black text-2xl mb-4">2</div>
+            <h3 className="font-black text-xl mb-4 uppercase">MINI-INVESTIGADORES</h3>
+            <p className="font-bold leading-tight italic">
+              ¿Qué come? ¿A qué hora duerme? Algunos chicos ya trajeron sus lupas para ver qué hace cuando sale el sol.
+            </p>
+          </section>
+        </div>
+
+        {/* Chistes Section */}
+        <div className="md:col-span-8">
+          <div className="bg-yellow-400 border-4 border-black p-8 shadow-[12px_12px_0px_black] h-full">
+            <h2 className="text-4xl font-black mb-8 uppercase italic border-b-4 border-black pb-2 flex items-center gap-4">
+              <Smile className="w-10 h-10" /> CHISTES "PARA BÚH-LEARSE DE RISA"
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div 
+                onClick={() => toggleJoke(3)}
+                className="bg-white border-4 border-black p-6 cursor-pointer hover:shadow-[6px_6px_0px_indigo] transition-all group"
+              >
+                <p className="font-black italic mb-4">¿Qué le dice un búho a su novia?</p>
+                <div className={`overflow-hidden transition-all duration-500 ${revealedJokes[3] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <p className="text-indigo-600 font-black text-2xl border-t-2 border-black pt-2">"¡Qué BUHA estás!"</p>
+                </div>
+                {!revealedJokes[3] && <p className="text-[10px] font-black opacity-30 group-hover:opacity-100 text-right uppercase mt-2">[ TOCAR ]</p>}
+              </div>
+
+              <div 
+                onClick={() => toggleJoke(4)}
+                className="bg-white border-4 border-black p-6 cursor-pointer hover:shadow-[6px_6px_0px_indigo] transition-all group"
+              >
+                <p className="font-black italic mb-4">¿Por qué el búho sacó 10 en el examen?</p>
+                <div className={`overflow-hidden transition-all duration-500 ${revealedJokes[4] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <p className="text-indigo-600 font-black text-2xl border-t-2 border-black pt-2">¡Porque es un SABIO!</p>
+                </div>
+                {!revealedJokes[4] && <p className="text-[10px] font-black opacity-30 group-hover:opacity-100 text-right uppercase mt-2">[ TOCAR ]</p>}
+              </div>
+
+              <div 
+                onClick={() => toggleJoke(5)}
+                className="bg-white border-4 border-black p-6 cursor-pointer hover:shadow-[6px_6px_0px_indigo] transition-all group col-span-1 md:col-span-2"
+              >
+                <p className="font-black italic mb-4">¿Qué hace un búho cuando le gusta un chiste?</p>
+                <div className={`overflow-hidden transition-all duration-500 ${revealedJokes[5] ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <p className="text-indigo-600 font-black text-2xl border-t-2 border-black pt-2 text-center uppercase">¡Se muere de la BÚH-RISA!</p>
+                </div>
+                {!revealedJokes[5] && <p className="text-[10px] font-black opacity-30 group-hover:opacity-100 text-center uppercase mt-2">[ TOCAR AQUÍ PARA REÍR ]</p>}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer Area Vol 03 */}
+      <footer className="mt-20 border-t-[12px] border-indigo-900 pt-12 text-black flex flex-col items-center space-y-12">
+        <div className="flex flex-wrap justify-center gap-8 text-[10px] md:text-base font-black uppercase tracking-widest">
+           <span className="bg-indigo-600 text-white px-3 py-1 shadow-[2px_2px_0px_black]">#NATURALEZAENELALERO</span>
+           <span className="bg-yellow-400 text-black px-3 py-1 shadow-[2px_2px_0px_black]">#ELBUHODELPATIO</span>
+           <span className="bg-indigo-900 text-white px-3 py-1 shadow-[2px_2px_0px_black]">#100AÑOSDEAMOR</span>
+        </div>
+        
+        <div className="text-center w-full max-w-2xl">
+           <Heart className="w-12 h-12 mx-auto text-yellow-400 mb-4 animate-pulse fill-current" />
+           <p className="font-serif italic font-black text-2xl md:text-4xl text-indigo-900">"Los animales saben dónde hay amor."</p>
+           <p className="mt-4 text-xs font-black uppercase opacity-40">Diario El Dorrego • Edición Mayo-Junio 2026</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
 export default function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [edition, setEdition] = useState(() => {
@@ -717,18 +951,24 @@ export default function App() {
             
             <div className="mb-8 space-y-2">
               <p className="text-[10px] font-black uppercase opacity-50 mb-2">Seleccionar Edición</p>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button 
                   onClick={() => toggleEdition(1)}
-                  className={`border-2 p-2 text-xs font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
                   Vol. 01
                 </button>
                 <button 
                   onClick={() => toggleEdition(2)}
-                  className={`border-2 p-2 text-xs font-black uppercase transition-colors ${edition === 2 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 2 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
                   Vol. 02
+                </button>
+                <button 
+                  onClick={() => toggleEdition(3)}
+                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 3 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                >
+                  Vol. 03
                 </button>
               </div>
             </div>
@@ -740,26 +980,21 @@ export default function App() {
                 <>
                   <a href="#que-es-alero" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">¿Qué es un Alero?</a>
                   <a href="#historias-risa" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Historias que dan risa</a>
-                  <a href="#terror" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Historia de Terror</a>
-                  <a href="#cristina-solis" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Cristina Solís</a>
                   <a href="#literatura" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Literatura del Barrio</a>
-                  <a href="#pedidos" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Pedidos del Barrio</a>
-                  <a href="#quienes-somos" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Quiénes Somos</a>
-                  <a href="#mantitas" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Mantitas de Bienvenida</a>
                 </>
               )}
               {edition === 2 && (
                 <>
                   <a href="#inicio" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-green-400 transition-colors border-b border-white/10 pb-1">Inicio Vol. 02</a>
-                  <a href="#preparativos" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-orange-400 transition-colors border-b border-white/10 pb-1 text-orange-400 animate-pulse">Preparativos Cumple</a>
-                  <p className="text-[8px] font-black uppercase opacity-30 mt-4">Secciones</p>
-                  <p className="text-xs italic opacity-60">Respuestas Chistes • Hacer Nacer • Taller en Vivo</p>
+                  <a href="#preparativos" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-orange-400 transition-colors border-b border-white/10 pb-1">Preparativos</a>
+                </>
+              )}
+              {edition === 3 && (
+                <>
+                  <a href="#buho" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-indigo-400 transition-colors border-b border-white/10 pb-1 text-yellow-400 animate-pulse">¡El Búho del Patio!</a>
                 </>
               )}
             </nav>
-            <div className="mt-8 pt-4 border-t-2 border-white/20">
-              <p className="text-[10px] font-bold italic opacity-70 uppercase">Prensa Infantil • Edición {edition.toString().padStart(2, '0')}</p>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -771,7 +1006,9 @@ export default function App() {
         transition={{ duration: 0.5 }}
         className="max-w-5xl w-full bg-[#fdfdfd] shadow-[0_30px_100px_rgba(0,0,0,0.3)] border-x-[12px] border-black p-6 md:p-14 relative overflow-hidden"
       >
-        {edition === 1 ? <Edition01 /> : <Edition02 />}
+        {edition === 1 && <Edition01 />}
+        {edition === 2 && <Edition02 />}
+        {edition === 3 && <Edition03 />}
 
         {/* Decorative elements */}
         <div className="absolute top-1/2 -right-20 transform -translate-y-1/2 rotate-90 text-8xl font-black opacity-[0.03] pointer-events-none select-none uppercase tracking-[1em]">
