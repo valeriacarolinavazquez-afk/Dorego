@@ -16,7 +16,9 @@ import {
   Calendar,
   Sparkles,
   Users,
-  Camera
+  Camera,
+  PartyPopper,
+  Cake
 } from "lucide-react";
 
 // --- STYLES ---
@@ -71,7 +73,7 @@ function Edition01() {
       </div>
 
       {/* Masthead */}
-      <header id="inicio" className="border-b-[12px] border-black pb-8 mb-12 text-center relative">
+      <header id="inicio-ed1" className="border-b-[12px] border-black pb-8 mb-12 text-center relative">
         <motion.div 
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -81,7 +83,7 @@ function Edition01() {
           ¡EL MEJOR\nLUGAR DEL\nMUNDO!
         </motion.div>
         
-        <a href="#inicio" className="block hover:opacity-80 transition-opacity">
+        <a href="#inicio-ed1" className="block hover:opacity-80 transition-opacity">
           <h1 className="text-[14vw] md:text-[10rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-black">
             EL DORREGO
           </h1>
@@ -116,7 +118,7 @@ function Edition01() {
         {/* Left Column */}
         <aside className="md:col-span-4 border-r-0 md:border-r-[6px] border-black pr-0 md:pr-10 space-y-14">
           
-          <section id="que-es-alero" className="relative text-black">
+          <section id="que-es-alero-ed1" className="relative text-black">
             <div className="absolute -top-4 -left-4 w-12 h-12 border-t-4 border-l-4 border-black"></div>
             <h2 className="text-4xl font-black mb-6 leading-none uppercase bg-black text-white p-2 inline-block">
               ¿QUÉ ES UN ALERO?
@@ -134,7 +136,7 @@ function Edition01() {
             </div>
           </section>
 
-          <section id="historias-risa" className="border-t-[6px] border-black pt-10 text-black">
+          <section id="historias-risa-ed1" className="border-t-[6px] border-black pt-10 text-black">
             <div className="flex items-center gap-3 mb-6">
               <Smile className="w-10 h-10 text-red-600" />
               <h2 className="text-3xl font-black leading-none uppercase">
@@ -153,7 +155,7 @@ function Edition01() {
             </div>
           </section>
 
-          <section id="terror" className="border-t-[6px] border-black pt-10 text-black">
+          <section id="terror-ed1" className="border-t-[6px] border-black pt-10 text-black">
             <div className="bg-black text-white p-2 mb-6 inline-block">
               <h2 className="text-2xl font-black uppercase tracking-tighter">
                 UNA HISTORIA DE TERROR EN EL BARRIO
@@ -169,7 +171,7 @@ function Edition01() {
             </div>
           </section>
 
-          <section id="cristina-solis" className="border-t-[6px] border-black pt-10 text-black">
+          <section id="cristina-solis-ed1" className="border-t-[6px] border-black pt-10 text-black">
             <h2 className="text-3xl font-black mb-6 leading-none uppercase bg-white text-black border-4 border-black p-2 inline-block italic">
               ¿SABES QUIÉN ES CRISTINA SOLIS?
             </h2>
@@ -217,7 +219,7 @@ function Edition01() {
             </div>
           </section>
 
-          <section id="literatura" className="border-t-[6px] border-black pt-10 text-black">
+          <section id="literatura-ed1" className="border-t-[6px] border-black pt-10 text-black">
             <div className="bg-black text-white p-2 mb-6 inline-block">
               <h2 className="text-2xl font-black uppercase tracking-tighter">
                 LITERATURA DEL BARRIO
@@ -242,7 +244,7 @@ function Edition01() {
             </div>
           </section>
 
-          <section id="pedidos" className="border-t-[6px] border-black pt-10 text-black">
+          <section id="pedidos-ed1" className="border-t-[6px] border-black pt-10 text-black">
             <div className="bg-[#fcf5e5] border-4 border-black p-4 relative overflow-hidden shadow-[6px_6px_0px_black]">
               <h2 className="text-xl font-black mb-4 leading-none uppercase italic border-b-2 border-black pb-1">
                 PEDIDOS DEL BARRIO
@@ -304,7 +306,7 @@ function Edition01() {
             </div>
           </div>
 
-          <section id="quienes-somos" className="relative">
+          <section id="quienes-somos-ed1" className="relative">
             <h2 className="text-5xl font-black mb-8 border-b-8 border-black pb-2 inline-block uppercase italic">
               QUIÉNES SOMOS
             </h2>
@@ -335,7 +337,7 @@ function Edition01() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <motion.div 
-              id="mantitas"
+              id="mantitas-ed1"
               whileHover={{ scale: 1.02 }}
               className="border-[6px] border-black p-8 bg-blue-100 relative group"
             >
@@ -466,7 +468,7 @@ function Edition02() {
       </div>
 
       {/* Masthead */}
-      <header id="inicio" className="border-b-[12px] border-orange-500 pb-8 mb-12 text-center relative">
+      <header id="inicio-ed2" className="border-b-[12px] border-orange-500 pb-8 mb-12 text-center relative">
         <motion.div 
           initial={{ scale: 0, rotate: -45 }}
           animate={{ scale: 1, rotate: 12 }}
@@ -475,7 +477,7 @@ function Edition02() {
           ¡JUNIO\nSE VIENE\nCON TODO!
         </motion.div>
         
-        <a href="#inicio" className="block hover:opacity-80 transition-opacity">
+        <a href="#inicio-ed2" className="block hover:opacity-80 transition-opacity">
           <h1 className="text-[14vw] md:text-[10rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-black">
             EL DORREGO
           </h1>
@@ -505,7 +507,7 @@ function Edition02() {
       <div className="space-y-16">
         
         {/* Row 1: Chistes y Respuestas (PRIMERO) */}
-        <section id="respuestas" className="max-w-4xl mx-auto">
+        <section id="respuestas-ed2" className="max-w-4xl mx-auto">
           <div className="bg-yellow-50 border-4 border-black p-6 md:p-10 shadow-[12px_12px_0px_black] relative overflow-hidden">
             <div className="absolute -right-10 -top-10 w-32 h-32 bg-orange-500 rotate-45 flex items-end justify-center pb-4">
               <span className="text-white font-black text-xs uppercase -rotate-45">¡NUEVO!</span>
@@ -542,7 +544,7 @@ function Edition02() {
         </section>
 
         {/* Row 2: Hacer Nacer (SEGUNDO) */}
-        <section id="hacer-nacer" className="space-y-10">
+        <section id="hacer-nacer-ed2" className="space-y-10">
           <div className="flex justify-center">
             <div className="relative">
               <div className="absolute -left-4 top-1 w-8 h-full bg-red-800 skew-y-12 z-0"></div>
@@ -585,7 +587,7 @@ function Edition02() {
         </section>
 
         {/* Row 3: Tramas (TERCERO / ÚLTIMO) */}
-        <section id="preparativos" className="bg-orange-50 border-[10px] border-black p-4 md:p-12 relative overflow-hidden">
+        <section id="preparativos-ed2" className="bg-orange-50 border-[10px] border-black p-4 md:p-12 relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-green-600 text-white font-black px-8 py-3 uppercase italic text-lg z-10 border-b-4 border-l-4 border-black shadow-lg">
             CENTRAL
           </div>
@@ -710,7 +712,7 @@ function Edition03() {
       </div>
 
       {/* Masthead Vol 03 */}
-      <header id="inicio" className="border-b-[12px] border-indigo-900 pb-8 mb-12 text-center relative">
+      <header id="inicio-ed3" className="border-b-[12px] border-indigo-900 pb-8 mb-12 text-center relative">
         <motion.div 
           initial={{ scale: 0, rotate: 15 }}
           animate={{ scale: 1, rotate: -12 }}
@@ -719,7 +721,7 @@ function Edition03() {
           ¡MIRÁ\nARRIBA!
         </motion.div>
         
-        <a href="#inicio" className="block hover:opacity-80 transition-opacity">
+        <a href="#inicio-ed3" className="block hover:opacity-80 transition-opacity">
           <h1 className="text-[14vw] md:text-[10rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-black">
             EL DORREGO
           </h1>
@@ -746,7 +748,7 @@ function Edition03() {
       </header>
 
       {/* Main Feature: EL BÚHO */}
-      <section id="buho" className="relative">
+      <section id="buho-ed3" className="relative">
         <div className="bg-indigo-950 text-white border-[10px] border-black p-8 md:p-16 shadow-[15px_15px_0px_#fbbf24] relative overflow-hidden">
           {/* Decorative Stars */}
           <div className="absolute top-10 right-10 flex gap-4 opacity-30">
@@ -897,14 +899,185 @@ function Edition03() {
   );
 }
 
+// --- EDICIÓN 04 ---
+function Edition04() {
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+
+  useEffect(() => {
+    const birthday = new Date("2026-06-08T00:00:00");
+    const now = new Date();
+    const diff = birthday.getTime() - now.getTime();
+    setDaysLeft(Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }, []);
+
+  return (
+    <div className="text-black space-y-12">
+      {/* Top Info Bar - Party Theme */}
+      <div className="flex justify-between items-end border-b-4 pb-4 mb-8" style={{ borderBottomColor: '#d946ef' }}>
+        <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter" style={{ color: '#701a75' }}>
+          <span className="bg-magenta-600 text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black]" style={{ backgroundColor: '#d946ef' }}>VOLUMEN 04</span>
+          DIARIO EL DORREGO • ¡RITMO DE CUMPLEAÑOS! • SANTA FE • 17 DE MAYO DE 2026
+        </div>
+        <div className="text-right text-[10px] md:text-sm font-black uppercase text-pink-600">
+          AÑO I • Nº 004<br />
+          EDICIÓN DEL DÍA: ¡FIESTA TOTAL!
+        </div>
+      </div>
+
+      {/* Masthead Vol 04 */}
+      <header id="inicio-ed4" className="border-b-[12px] border-pink-500 pb-8 mb-12 text-center relative">
+        <motion.div 
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 15 }}
+          className="absolute -top-12 -right-4 bg-yellow-400 border-4 border-black p-4 rounded-xl font-black text-xs md:text-sm text-black shadow-[6px_6px_0px_black] z-20"
+        >
+          ¡TIRAMOS LA\nCASA POR LA\nVENTANA!
+        </motion.div>
+        
+        <a href="#inicio-ed4" className="block hover:opacity-80 transition-opacity">
+          <h1 className="text-[14vw] md:text-[10rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-black">
+            EL DORREGO
+          </h1>
+        </a>
+        
+        <div className="relative inline-block px-4">
+          <div className="absolute inset-0 bg-pink-600 transform -rotate-1 skew-x-2 translate-y-1"></div>
+          <div className="relative border-4 border-black py-2 px-12 text-2xl md:text-5xl font-black tracking-[0.2em] bg-yellow-300 text-black translate-y-[-4px] shadow-[4px_4px_0px_black] uppercase">
+             ¡Cumple Alero 10 Años! 
+          </div>
+        </div>
+
+        {/* Party Countdown */}
+        <div className="mt-12 flex justify-center">
+          <div className="bg-black text-white px-8 py-4 border-4 border-pink-500 flex items-center gap-6 shadow-[10px_10px_0px_#fbbf24]">
+            <PartyPopper className="w-10 h-10 text-pink-400 animate-pulse" />
+            <div className="text-left font-black uppercase tracking-tight">
+              <span className="text-xs block opacity-60">FALTAN SOLO</span>
+              <span className="text-4xl md:text-5xl leading-none text-yellow-400">{daysLeft ?? "?"} DÍAS</span>
+              <span className="text-xs block opacity-60 mt-1">PARA EL GRAN FESTEJO (8 DE JUNIO)</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Story: BONETES Y FIESTA */}
+      <section id="festejo-ed4" className="relative group">
+        <div className="absolute inset-0 bg-pink-100 translate-x-4 translate-y-4 -z-10"></div>
+        <div className="bg-white border-[8px] border-black p-6 md:p-12 shadow-[15px_15px_0px_black] relative overflow-hidden">
+          
+          <div className="flex flex-col md:flex-row gap-12 items-start">
+            <div className="w-full md:w-3/5 space-y-8">
+              <div className="inline-block bg-pink-600 text-white px-4 py-2 font-black uppercase text-xl transform -rotate-1 shadow-[4px_4px_0px_black] mb-2">
+                CRÓNICA DEL DÍA
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black uppercase italic leading-[0.9] tracking-tighter text-black">
+                ¡EL ALERO A PLENO Y CON RITMO DE CUMPLEAÑOS!
+              </h2>
+              <div className="h-2 bg-yellow-400 w-1/3"></div>
+              
+              <div className="prose prose-xl font-bold leading-tight space-y-6 text-2xl md:text-3xl text-justify italic">
+                <p>
+                  ¡Hoy el Alero Coronel Dorrego tiró la casa por la ventana! Desde muy temprano el Bazar abrió sus puertas y el patio se llenó de risas con los juegos. 
+                </p>
+                <p>
+                  Pero lo más importante: las fábricas estuvieron a mil. En <span className="bg-yellow-200 px-2 not-italic">Bienvenida al Mundo Textil</span> seguimos bordando las mantitas, y en la <span className="bg-pink-100 px-2 not-italic">Fábrica de la Palabra</span> no paramos de crear.
+                </p>
+                <p className="border-l-8 border-pink-500 pl-6 py-2 bg-pink-50">
+                  Además, ¡ya se siente el festejo! Estamos armando los <span className="text-pink-600 uppercase font-black not-italic">bonetes y gorritos</span> (que son lo mismo, ¡pura fiesta!) para los 10 años del Alero; los hicimos aparte cortando un espiral de papel que pusimos alrededor de cada uno para que tengan movimiento y ritmo. ¡Estamos de fiesta!
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <div className="flex items-center gap-2 bg-black text-white px-4 py-2 font-black uppercase text-sm">
+                  <Cake className="w-5 h-5 text-yellow-400" />
+                  10 Años de amor
+                </div>
+                <div className="flex items-center gap-2 bg-pink-500 text-white px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_black]">
+                  #AlAleroConTodo
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-2/5 space-y-6">
+              <div className="relative transform rotate-2">
+                <div className="absolute inset-0 bg-black translate-x-3 translate-y-3"></div>
+                <div className="relative border-4 border-black bg-white p-2">
+                  <div className="aspect-[3/4] bg-slate-200 border-2 border-black overflow-hidden relative">
+                    {/* Featured Image - Birthday Hats / Bonetes */}
+                    <img 
+                      src="/src/assets/images/alero_bonetes_artesanales_1778986050595.png" 
+                      alt="Festejos y bonetes en el alero" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        // Fallback if local image missing (though it shouldn't be)
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&q=80&w=600";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-pink-500/10 pointer-events-none"></div>
+                    <div className="absolute bottom-4 left-4 right-4 bg-white border-2 border-black p-3 text-center">
+                      <p className="font-black uppercase text-xs leading-none">¡ARMANDO LOS BONETES!</p>
+                      <p className="text-[10px] font-bold mt-1 opacity-60">Producción a pleno en la fábrica</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-yellow-400 border-4 border-black p-6 shadow-[8px_8px_0px_black] transform -rotate-1">
+                <h3 className="font-black uppercase text-lg mb-2">DATO DEL DÍA:</h3>
+                <p className="font-black text-sm italic">"Los bonetes o gorritos fueron hechos aparte con espirales cortados a mano que giran al compás del festejo. ¡Pura magia y movimiento en El Alero!"</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mini Section: Fábrica de la Palabra */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <section className="bg-indigo-900 text-white border-4 border-black p-8 shadow-[10px_10px_0px_pink]">
+          <h2 className="text-3xl font-black mb-6 uppercase flex items-center gap-3">
+             FÁBRICA DE LA PALABRA
+          </h2>
+          <div className="space-y-4 text-xl font-bold italic leading-tight">
+            <p>"Escribir para acordarse, escribir para soñar. Hoy las letras se disfrazan de confeti."</p>
+            <div className="border-t-2 border-white/20 pt-4 font-black uppercase text-xs tracking-widest text-pink-300">
+               Últimas creaciones infantiles 
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-yellow-200 text-black border-4 border-black p-8 shadow-[10px_10px_0px_black] transform rotate-1">
+          <h2 className="text-3xl font-black mb-4 uppercase">EL BAZAR ABIERTO</h2>
+          <p className="text-xl font-bold leading-none mb-4 italic">"Risas, intercambios y tesoros encontrados desde temprano."</p>
+          <div className="h-1 bg-black w-full mb-4"></div>
+          <p className="font-black uppercase text-sm">El patio está que arde de alegría.</p>
+        </section>
+      </div>
+
+      {/* Stickers / Footer area */}
+      <div className="flex flex-wrap justify-center gap-6 py-8">
+        <div className="bg-pink-500 text-white font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-12 hover:rotate-0 transition-transform cursor-pointer">
+          ¡10 AÑOS!
+        </div>
+        <div className="bg-yellow-400 text-black font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform -rotate-6 hover:rotate-0 transition-transform cursor-pointer">
+          FELICIDAD
+        </div>
+        <div className="bg-black text-white font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-2 hover:rotate-0 transition-transform cursor-pointer">
+          SUEÑOS
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
-      return saved ? parseInt(saved) : 1;
+      return saved ? parseInt(saved) : 4;
     }
-    return 1;
+    return 4;
   });
 
   useEffect(() => {
@@ -951,7 +1124,7 @@ export default function App() {
             
             <div className="mb-8 space-y-2">
               <p className="text-[10px] font-black uppercase opacity-50 mb-2">Seleccionar Edición</p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 <button 
                   onClick={() => toggleEdition(1)}
                   className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
@@ -970,28 +1143,34 @@ export default function App() {
                 >
                   Vol. 03
                 </button>
+                <button 
+                  onClick={() => toggleEdition(4)}
+                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 4 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                >
+                  Vol. 04
+                </button>
               </div>
             </div>
 
             <nav className="space-y-4">
               <p className="text-[10px] font-black uppercase opacity-50 mb-2">Navegación</p>
-              <a href="#inicio" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Inicio</a>
+              <a href={`#inicio-ed${edition}`} onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Inicio</a>
               {edition === 1 && (
                 <>
-                  <a href="#que-es-alero" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">¿Qué es un Alero?</a>
-                  <a href="#historias-risa" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Historias que dan risa</a>
-                  <a href="#literatura" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Literatura del Barrio</a>
+                  <a href="#que-es-alero-ed1" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">¿Qué es un Alero?</a>
+                  <a href="#historias-risa-ed1" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Historias que dan risa</a>
+                  <a href="#literatura-ed1" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">Literatura del Barrio</a>
                 </>
               )}
               {edition === 2 && (
                 <>
-                  <a href="#inicio" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-green-400 transition-colors border-b border-white/10 pb-1">Inicio Vol. 02</a>
-                  <a href="#preparativos" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-orange-400 transition-colors border-b border-white/10 pb-1">Preparativos</a>
+                  <a href="#inicio-ed2" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-green-400 transition-colors border-b border-white/10 pb-1">Inicio Vol. 02</a>
+                  <a href="#preparativos-ed2" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-orange-400 transition-colors border-b border-white/10 pb-1">Preparativos</a>
                 </>
               )}
               {edition === 3 && (
                 <>
-                  <a href="#buho" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-indigo-400 transition-colors border-b border-white/10 pb-1 text-yellow-400 animate-pulse">¡El Búho del Patio!</a>
+                  <a href="#buho-ed3" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-indigo-400 transition-colors border-b border-white/10 pb-1 text-yellow-400 animate-pulse">¡El Búho del Patio!</a>
                 </>
               )}
             </nav>
@@ -1009,6 +1188,7 @@ export default function App() {
         {edition === 1 && <Edition01 />}
         {edition === 2 && <Edition02 />}
         {edition === 3 && <Edition03 />}
+        {edition === 4 && <Edition04 />}
 
         {/* Decorative elements */}
         <div className="absolute top-1/2 -right-20 transform -translate-y-1/2 rotate-90 text-8xl font-black opacity-[0.03] pointer-events-none select-none uppercase tracking-[1em]">
