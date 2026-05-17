@@ -1005,13 +1005,13 @@ function Edition04() {
                   <div className="aspect-[3/4] bg-slate-200 border-2 border-black overflow-hidden relative">
                     {/* Featured Image - Birthday Hats / Bonetes */}
                     <img 
-                      src="/src/assets/images/alero_bonetes_artesanales_1778986050595.png" 
+                      src="/images/alero_bonetes_artesanales_1778986050595.png" 
                       alt="Festejos y bonetes en el alero" 
                       className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         // Fallback if local image missing (though it shouldn't be)
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&q=80&w=600";
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1547394765-185e1e68f34e?auto=format&fit=crop&q=80&w=600"; // Changed fallback to something less like "just balloons" if it fails, or keep it
                       }}
                     />
                     <div className="absolute inset-0 bg-pink-500/10 pointer-events-none"></div>
