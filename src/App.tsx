@@ -1336,15 +1336,67 @@ function Edition05() {
     setAudioState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
   };
 
+  // Helper to dynamically get API URLs
+  const getApiUrl = (endpoint: string) => {
+    const currentHost = window.location.hostname;
+    // If we're working on local development or the official Google Cloud Run, relative endpoint is perfect.
+    if (
+      currentHost.includes("localhost") || 
+      currentHost.includes("127.0.0.1") || 
+      currentHost.includes("run.app")
+    ) {
+      return endpoint;
+    }
+    // If running on a static site like Vercel (dorego.vercel.app), route requests to our public Cloud Run backup server!
+    return `https://ais-pre-rawgpkbifbfojkwv7g7d5m-112551938117.us-east5.run.app${endpoint}`;
+  };
+
   const fetchWishes = async () => {
     try {
-      const response = await fetch("/api/wishes");
+      const url = getApiUrl("/api/wishes");
+      const response = await fetch(url);
       if (response.ok) {
-        const data = await response.json();
-        setWishes(data);
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          setWishes(data);
+          // Sync with local storage
+          localStorage.setItem("el_dorrego_wishes", JSON.stringify(data));
+          return;
+        }
       }
+      loadLocalWishes();
     } catch (err) {
-      console.error("Error fetching wishes:", err);
+      console.warn("Could not fetch wishes from server API, using local storage fallback", err);
+      loadLocalWishes();
+    }
+  };
+
+  const loadLocalWishes = () => {
+    try {
+      const stored = localStorage.getItem("el_dorrego_wishes");
+      if (stored) {
+        setWishes(JSON.parse(stored));
+      } else {
+        const seed = [
+          {
+            id: 1,
+            author: "Vale",
+            text: "¡Que El Alero siga cobijando las risas de todos los niños por 100 años más! 🎈",
+            date: "2026-06-07T22:34:50.000Z"
+          },
+          {
+            id: 2,
+            author: "Héctor del Barrio",
+            text: "Felices 10 años al lugar donde aprendimos a tejer la trama comunitaria y a reír sin miedos. ✨",
+            date: "2026-06-06T18:20:00.000Z"
+          }
+        ];
+        localStorage.setItem("el_dorrego_wishes", JSON.stringify(seed));
+        setWishes(seed);
+      }
+    } catch (e) {
+      console.error("LocalStorage error:", e);
     }
   };
 
@@ -1356,32 +1408,80 @@ function Edition05() {
     }
     setWishError(null);
     setIsSubmittingWish(true);
+
+    const authorVal = newWishAuthor.trim() ? newWishAuthor.trim() : "Vecino/a anónimo";
+    const textVal = newWishText.trim();
+    const dateVal = new Date().toISOString();
+    const newWishObj = {
+      id: Date.now(),
+      author: authorVal,
+      text: textVal,
+      date: dateVal
+    };
+
+    let savedOnServer = false;
+
     try {
-      const response = await fetch("/api/wishes", {
+      const url = getApiUrl("/api/wishes");
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          author: newWishAuthor.trim(),
-          text: newWishText.trim(),
+          author: authorVal,
+          text: textVal,
         }),
       });
       if (response.ok) {
-        const data = await response.json();
-        setWishes(data);
-        setNewWishText("");
-        setNewWishAuthor("");
-      } else {
-        const errData = await response.json();
-        setWishError(errData.error || "Ocurrió un error.");
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          setWishes(data);
+          localStorage.setItem("el_dorrego_wishes", JSON.stringify(data));
+          setNewWishText("");
+          setNewWishAuthor("");
+          savedOnServer = true;
+        }
       }
     } catch (err) {
-      console.error("Error saving wish:", err);
-      setWishError("No se pudo conectar con el servidor.");
-    } finally {
-      setIsSubmittingWish(false);
+      console.warn("Could not save wish to API server, will save to local storage only", err);
     }
+
+    if (!savedOnServer) {
+      // Fallback: Save local-only
+      try {
+        const stored = localStorage.getItem("el_dorrego_wishes");
+        let wishesList = [];
+        if (stored) {
+          wishesList = JSON.parse(stored);
+        } else {
+          wishesList = [
+            {
+              id: 1,
+              author: "Vale",
+              text: "¡Que El Alero siga cobijando las risas de todos los niños por 100 años más! 🎈",
+              date: "2026-06-07T22:34:50.000Z"
+            },
+            {
+              id: 2,
+              author: "Héctor del Barrio",
+              text: "Felices 10 años al lugar donde aprendimos a tejer la trama comunitaria y a reír sin miedos. ✨",
+              date: "2026-06-06T18:20:00.000Z"
+            }
+          ];
+        }
+        const updatedList = [newWishObj, ...wishesList];
+        localStorage.setItem("el_dorrego_wishes", JSON.stringify(updatedList));
+        setWishes(updatedList);
+        setNewWishText("");
+        setNewWishAuthor("");
+      } catch (localErr) {
+        console.error(localErr);
+        setWishError("No se pudo guardar localmente.");
+      }
+    }
+    setIsSubmittingWish(false);
   };
 
   useEffect(() => {

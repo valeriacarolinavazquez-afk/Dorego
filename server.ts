@@ -10,6 +10,17 @@ async function startServer() {
   // JSON middleware to support parsing JSON bodies
   app.use(express.json());
 
+  // Enable CORS to support external clients (like Vercel: dorego.vercel.app)
+  app.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Wishes file path
   const WISHES_FILE = path.join(process.cwd(), "wishes.json");
 
