@@ -18,7 +18,15 @@ import {
   Users,
   Camera,
   PartyPopper,
-  Cake
+  Cake,
+  Paintbrush,
+  Newspaper,
+  Volume2,
+  VolumeX,
+  Play,
+  Pause,
+  Square,
+  AudioLines
 } from "lucide-react";
 
 // --- STYLES ---
@@ -1075,9 +1083,9 @@ export default function App() {
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
-      return saved ? parseInt(saved) : 4;
+      return saved ? parseInt(saved) : 5;
     }
-    return 4;
+    return 5;
   });
 
   useEffect(() => {
@@ -1124,30 +1132,36 @@ export default function App() {
             
             <div className="mb-8 space-y-2">
               <p className="text-[10px] font-black uppercase opacity-50 mb-2">Seleccionar Edición</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 <button 
                   onClick={() => toggleEdition(1)}
-                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                  className={`border-2 p-1.5 text-[10px] font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
-                  Vol. 01
+                  Vol. 1
                 </button>
                 <button 
                   onClick={() => toggleEdition(2)}
-                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 2 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                  className={`border-2 p-1.5 text-[10px] font-black uppercase transition-colors ${edition === 2 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
-                  Vol. 02
+                  Vol. 2
                 </button>
                 <button 
                   onClick={() => toggleEdition(3)}
-                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 3 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                  className={`border-2 p-1.5 text-[10px] font-black uppercase transition-colors ${edition === 3 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
-                  Vol. 03
+                  Vol. 3
                 </button>
                 <button 
                   onClick={() => toggleEdition(4)}
-                  className={`border-2 p-2 text-[10px] font-black uppercase transition-colors ${edition === 4 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                  className={`border-2 p-1.5 text-[10px] font-black uppercase transition-colors ${edition === 4 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
-                  Vol. 04
+                  Vol. 4
+                </button>
+                <button 
+                  onClick={() => toggleEdition(5)}
+                  className={`border-2 p-1.5 text-[10px] font-black uppercase transition-colors ${edition === 5 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                >
+                  Vol. 5
                 </button>
               </div>
             </div>
@@ -1173,6 +1187,16 @@ export default function App() {
                   <a href="#buho-ed3" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-indigo-400 transition-colors border-b border-white/10 pb-1 text-yellow-400 animate-pulse">¡El Búho del Patio!</a>
                 </>
               )}
+              {edition === 4 && (
+                <>
+                  <a href="#festejo-ed4" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-pink-400 transition-colors border-b border-white/10 pb-1">Cumpleaños 10 Años</a>
+                </>
+              )}
+              {edition === 5 && (
+                <>
+                  <a href="#festejo-ed5" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-teal-400 transition-colors border-b border-white/10 pb-1 text-teal-300 animate-pulse">¡Fecha Confirmada!</a>
+                </>
+              )}
             </nav>
           </motion.div>
         )}
@@ -1189,12 +1213,800 @@ export default function App() {
         {edition === 2 && <Edition02 />}
         {edition === 3 && <Edition03 />}
         {edition === 4 && <Edition04 />}
+        {edition === 5 && <Edition05 />}
 
         {/* Decorative elements */}
         <div className="absolute top-1/2 -right-20 transform -translate-y-1/2 rotate-90 text-8xl font-black opacity-[0.03] pointer-events-none select-none uppercase tracking-[1em]">
           EL ALERO EL ALERO EL ALERO
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+// --- EDICIÓN 05 ---
+function Edition05() {
+  const [daysLeftOriginal, setDaysLeftOriginal] = useState<number | null>(null);
+  const [daysLeftCeleb, setDaysLeftCeleb] = useState<number | null>(null);
+  const [selectedHeadline, setSelectedHeadline] = useState<string>(
+    "¡LLUEVEN PIÑATAS GIGANTES DE COLORES DESDE EL CIELO DEL DORREGO!"
+  );
+  const [customHeadline, setCustomHeadline] = useState<string>("");
+  const [selectedDoodle, setSelectedDoodle] = useState<string>("🎈");
+
+  // State for permanent wishes
+  const [wishes, setWishes] = useState<Array<{ id: number; author: string; text: string; date: string }>>([]);
+  const [newWishAuthor, setNewWishAuthor] = useState<string>("");
+  const [newWishText, setNewWishText] = useState<string>("");
+  const [isSubmittingWish, setIsSubmittingWish] = useState<boolean>(false);
+  const [wishError, setWishError] = useState<string | null>(null);
+
+  // --- AUDIO / TEXT TO SPEECH (VOZ CÁLIDA DE VECINA DE EL ALERO) ---
+  const [audioState, setAudioState] = useState<{
+    isSpeaking: boolean;
+    isPaused: boolean;
+    currentIndex: number;
+  }>({
+    isSpeaking: false,
+    isPaused: false,
+    currentIndex: -1
+  });
+
+  const textToRead = [
+    "¡Hola, vecinas y vecinos! Les habla una residente de El Alero Coronel Dorrego. Les voy a leer el volumen cinco de nuestro querido periódico El Dorrego.",
+    "El cumpleaños de diez de nuestro amado Alero Coronel Dorrego oficialmente cae este lunes ocho de junio, es decir, ¡mañana! Diez años haciendo nacer comunidad desde aquel primer día en el barrio.",
+    "Pero como un hito de esta magnitud no cabe solo en pantallas móviles, ¡El Diario El Dorrego saldrá en formato físico! Las rotativas analógicas del barrio están listas para imprimir este periódico escolar-comunitario en papel real y rugoso. Lo repartiremos de mano en mano el próximo sábado veintisiete de junio.",
+    "¡Anoten bien! El sábado veintisiete de junio nos volveremos a abrazar, a bailar y a disfrutar de todo lo que venimos armando en cada una de las fábricas. ¡Habrá música, juegos, mantitas y por supuesto, sorpresas!",
+    "Fábrica de objetos al final del recorrido. Aquí ya no hacemos más bonetes, sino pura fiesta colgante y sorpresas. En la mesa uno estamos armando las piñatas coloridas y gigantes para colgar en todos lados de El Alero. ¡Estallarán de alegría y movimiento para celebrar los diez años! En la mesa dos tenemos los moldes de cartulina listos para recortar y armar las cajitas de sorpresas. Adentro de cada una vas a ver una sorpresa preciosa, ¡una hermosa sorpresita de cumpleaños creada junto a la Fábrica de la Palabra!",
+    "Y en nuestra Fábrica de la Palabra huele a pintura fresca. Estuvimos remodelando por completo nuestro espacio con paredes coloridas y repisas llenas de brillo. ¡La Fábrica de la Palabra estrena look para imprimir los periódicos físicos y llenarse de titulares y cuentos fantásticos! Además, esta fábrica es el lugar central donde va a estar y nacer el queridísimo periódico de El Alero."
+  ];
+
+  const speakChunk = (index: number) => {
+    if (index >= textToRead.length) {
+      setAudioState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
+      return;
+    }
+    
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {
+      console.warn("speechSynthesis cancel error", e);
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(textToRead[index]);
+    
+    // Attempt to locate a warm, expressive Spanish/regional voice
+    const voices = window.speechSynthesis.getVoices();
+    const spanishVoice = voices.find(v => v.lang.startsWith("es-AR")) ||
+                         voices.find(v => v.lang.startsWith("es-UY")) ||
+                         voices.find(v => v.lang.startsWith("es-ES") && v.name.toLowerCase().includes("female")) ||
+                         voices.find(v => v.lang.startsWith("es-MX")) ||
+                         voices.find(v => v.lang.startsWith("es-ES")) ||
+                         voices.find(v => v.lang.startsWith("es"));
+    
+    if (spanishVoice) {
+      utterance.voice = spanishVoice;
+    }
+    utterance.lang = spanishVoice ? spanishVoice.lang : "es-AR";
+    utterance.pitch = 1.05; // Slightly warmer/sweeter tone
+    utterance.rate = 0.88;  // Calm, maternal, slow neighborhood resident reading speed
+
+    utterance.onend = () => {
+      setAudioState(prev => {
+        const nextIndex = prev.currentIndex + 1;
+        if (nextIndex < textToRead.length) {
+          setTimeout(() => speakChunk(nextIndex), 250);
+          return { ...prev, currentIndex: nextIndex };
+        } else {
+          return { isSpeaking: false, isPaused: false, currentIndex: -1 };
+        }
+      });
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== "interrupted") {
+        setAudioState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
+      }
+    };
+
+    setAudioState({ isSpeaking: true, isPaused: false, currentIndex: index });
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.error("speechSynthesis speak error", err);
+    }
+  };
+
+  const handlePlaySpeech = () => {
+    if (audioState.isSpeaking && audioState.isPaused) {
+      window.speechSynthesis.resume();
+      setAudioState(prev => ({ ...prev, isPaused: false }));
+    } else if (audioState.isSpeaking) {
+      window.speechSynthesis.pause();
+      setAudioState(prev => ({ ...prev, isPaused: true }));
+    } else {
+      speakChunk(0);
+    }
+  };
+
+  const handleStopSpeech = () => {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {}
+    setAudioState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
+  };
+
+  const fetchWishes = async () => {
+    try {
+      const response = await fetch("/api/wishes");
+      if (response.ok) {
+        const data = await response.json();
+        setWishes(data);
+      }
+    } catch (err) {
+      console.error("Error fetching wishes:", err);
+    }
+  };
+
+  const handleWishSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!newWishText.trim()) {
+      setWishError("¡Por favor, escribí un deseo para El Alero!");
+      return;
+    }
+    setWishError(null);
+    setIsSubmittingWish(true);
+    try {
+      const response = await fetch("/api/wishes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          author: newWishAuthor.trim(),
+          text: newWishText.trim(),
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setWishes(data);
+        setNewWishText("");
+        setNewWishAuthor("");
+      } else {
+        const errData = await response.json();
+        setWishError(errData.error || "Ocurrió un error.");
+      }
+    } catch (err) {
+      console.error("Error saving wish:", err);
+      setWishError("No se pudo conectar con el servidor.");
+    } finally {
+      setIsSubmittingWish(false);
+    }
+  };
+
+  useEffect(() => {
+    const originalBirthday = new Date("2026-06-08T00:00:00");
+    const celebrationBirthday = new Date("2026-06-27T00:00:00");
+    const now = new Date();
+    
+    // original diff
+    const diffOrig = originalBirthday.getTime() - now.getTime();
+    setDaysLeftOriginal(Math.ceil(diffOrig / (1000 * 60 * 60 * 24)));
+    
+    // celebration diff
+    const diffCeleb = celebrationBirthday.getTime() - now.getTime();
+    setDaysLeftCeleb(Math.ceil(diffCeleb / (1000 * 60 * 60 * 24)));
+
+    // Fetch the stored wishes
+    fetchWishes();
+
+    // Cleanup Speech synthesis on unmount so voices don't overlap or leak
+    return () => {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (err) {}
+    };
+  }, []);
+
+  const fantasticPresets = [
+    "¡LLUEVEN PIÑATAS GIGANTES DE COLORES DESDE EL CIELO DEL DORREGO!",
+    "¡UN BÚHO CON ANTEOJOS ARMA CAJITAS EN LA FÁBRICA DE OBJETOS!",
+    "¡EL DIARIO EL DORREGO ES DECLARADO EMBAJADA DE LA RISA INTERGALÁCTICA!",
+    "¡EL SÁBADO 27 DE JUNIO EL DÍA TENDRÁ 48 HORAS PARA PODER FESTEJAR MÁS!",
+    "¡LAS CAJITAS SORPRESA DE LA SEGUNDA MESA COBRAN VIDA Y BAILAN CUMBIA SANTAFESINA!"
+  ];
+
+  const doodles = [
+    { char: "🎈", label: "Globo alegre" },
+    { char: "🦉", label: "Búho del patio" },
+    { char: "🌸", label: "Flor silvestre" },
+    { char: "🎂", label: "Torta de diez" },
+    { char: "✨", label: "Chispas de magia" },
+    { char: "🎨", label: "Pintura fresca" },
+    { char: "🎁", label: "Cajita sorpresa" },
+    { char: "⚽", label: "Picadito callejero" }
+  ];
+
+  const handleCustomSubmit = (e: any) => {
+    e.preventDefault();
+    if (customHeadline.trim()) {
+      setSelectedHeadline(customHeadline.trim().toUpperCase());
+      setCustomHeadline("");
+    }
+  };
+
+  return (
+    <div className="text-black space-y-12">
+      {/* Top Info Bar - Party Theme */}
+      <div className="flex justify-between items-end border-b-4 pb-4 mb-8" style={{ borderBottomColor: '#0d9488' }}>
+        <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter" style={{ color: '#115e59' }}>
+          <span className="text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black]" style={{ backgroundColor: '#0d9488' }}>VOLUMEN 05</span>
+          DIARIO EL DORREGO • ¡FECHA CONFIRMADA Y FORMATO FÍSICO! • SANTA FE • 7 DE JUNIO DE 2026
+        </div>
+        <div className="text-right text-[10px] md:text-sm font-black uppercase text-teal-700">
+          AÑO I • Nº 005<br />
+          EDICIÓN ESPECIAL: ¡LA GRAN REPROGRAMACIÓN!
+        </div>
+      </div>
+
+      {/* Masthead Vol 05 */}
+      <header id="inicio-ed5" className="border-b-[12px] border-teal-600 pb-8 mb-12 text-center relative">
+        <motion.div 
+          initial={{ scale: 0, rotate: -15 }}
+          animate={{ scale: 1, rotate: 8 }}
+          className="absolute -top-12 -right-4 bg-yellow-400 border-4 border-black p-4 rounded-xl font-black text-xs md:text-sm text-black shadow-[6px_6px_0px_black] z-20 animate-pulse"
+        >
+          ¡MARCÁ EL ALMANAQUE!
+        </motion.div>
+        
+        <a href="#inicio-ed5" className="block hover:opacity-80 transition-opacity">
+          <h1 className="text-[14vw] md:text-[10rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-black">
+            EL DORREGO
+          </h1>
+        </a>
+        
+        <div className="relative inline-block px-4">
+          <div className="absolute inset-0 bg-teal-700 transform -rotate-1 skew-x-2 translate-y-1"></div>
+          <div className="relative border-4 border-black py-2 px-12 text-2xl md:text-5xl font-black tracking-[0.1em] bg-yellow-300 text-black translate-y-[-4px] shadow-[4px_4px_0px_black] uppercase">
+             ¡Se Festeja el 27 de Junio! 
+          </div>
+        </div>
+
+        {/* Dynamic Countdown & Explainer Grid */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {/* El cumple real es mañana */}
+          <div className="bg-white border-4 border-black p-6 relative shadow-[8px_8px_0px_#93c5fd]">
+            <div className="absolute top-0 right-0 bg-blue-500 text-white font-black text-[10px] px-3 py-1 uppercase border-b-4 border-l-4 border-black">
+              CUMPLE OFICIAL (MAÑANA)
+            </div>
+            <div className="flex items-center gap-4">
+              <Calendar className="w-10 h-10 text-blue-600" />
+              <div className="text-left font-black uppercase">
+                <span className="text-xs block opacity-60">MAÑANA ES EL DÍA REAL</span>
+                <span className="text-2xl leading-none text-blue-600">8 DE JUNIO</span>
+                <span className="text-[10px] block opacity-80 mt-1">
+                  {daysLeftOriginal === 1 
+                    ? "¡CUMPLEAÑOS MAÑANA!" 
+                    : daysLeftOriginal === 0 
+                      ? "¡HOY CUMPLE 10 AÑOS EL ALERO!" 
+                      : daysLeftOriginal !== null && daysLeftOriginal < 0
+                        ? `¡CUMPLE FUE HACE ${Math.abs(daysLeftOriginal)} DÍAS!`
+                        : `FALTAN ${daysLeftOriginal} DÍAS`
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* El festejo es el 27 */}
+          <div className="bg-white border-4 border-black p-6 relative shadow-[8px_8px_0px_#fde047]">
+            <div className="absolute top-0 right-0 bg-yellow-400 text-black font-black text-[10px] px-3 py-1 uppercase border-b-4 border-l-4 border-black">
+              EL FESTÓN DEL SIGLO
+            </div>
+            <div className="flex items-center gap-4">
+              <PartyPopper className="w-10 h-10 text-amber-500 animate-bounce" />
+              <div className="text-left font-black uppercase">
+                <span className="text-xs block opacity-60">FESTEJAMOS EL SÁBADO</span>
+                <span className="text-2xl leading-none text-teal-700">27 DE JUNIO</span>
+                <span className="text-[10px] block opacity-80 mt-1">
+                  {daysLeftCeleb !== null && daysLeftCeleb > 0 
+                    ? `¡FALTAN ${daysLeftCeleb} DÍAS PARA LA FIESTA!` 
+                    : "¡LLEGÓ EL DÍA DE FESTEJAR!"
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Story: REPROGRAMACIÓN CON ALMA */}
+      <section id="festejo-ed5" className="relative group">
+        <div className="absolute inset-0 bg-teal-50 translate-x-4 translate-y-4 -z-10"></div>
+        <div className="bg-white border-[8px] border-black p-6 md:p-12 shadow-[15px_15px_0px_black] relative overflow-hidden">
+          
+          <div className="flex flex-col md:flex-row gap-12 items-start">
+            <div className="w-full md:w-3/5 space-y-8">
+              <div className="inline-block bg-teal-600 text-white px-4 py-2 font-black uppercase text-xl transform -rotate-1 shadow-[4px_4px_0px_black] mb-2 font-mono">
+                🎨 CRÓNICA EXCLUSIVA
+              </div>
+              <h2 className="text-5xl md:text-7xl font-black uppercase italic leading-[0.9] tracking-tighter text-black">
+                EL DORREGO IMPRESO EN FÍSICO PARA LEER EN LA CALLE
+              </h2>
+
+              {/* AUDIOLIBRO / LECTURA COMPARTIDA */}
+              <div className="bg-amber-50 border-4 border-black p-4 shadow-[4px_4px_0px_black] flex flex-col sm:flex-row items-center justify-between gap-4 max-w-xl">
+                <div className="flex items-center gap-3">
+                  <div className={`bg-amber-200 border-2 border-black p-2 rounded-full ${audioState.isSpeaking && !audioState.isPaused ? 'animate-bounce' : ''}`}>
+                    <AudioLines className="w-5 h-5 text-amber-900" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[11px] font-black uppercase text-amber-900 flex items-center gap-2">
+                      <span>📻 AUDIO-LECTURA EXCLUSIVA</span>
+                      {audioState.isSpeaking && !audioState.isPaused && (
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                      )}
+                    </p>
+                    <p className="text-[11px] font-bold text-gray-800 leading-tight">
+                      {audioState.isSpeaking 
+                        ? `Leyendo sección ${audioState.currentIndex + 1} de ${textToRead.length}...`
+                        : "¡Dejá que Marta, vecina de El Alero, te lea la Edición 5 con voz cálida!"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    onClick={handlePlaySpeech}
+                    className={`px-3 py-1.5 text-xs font-black uppercase border-2 border-black shadow-[2px_2px_0px_black] flex items-center gap-1.5 transition-all ${
+                      audioState.isSpeaking && !audioState.isPaused
+                        ? "bg-yellow-300 hover:bg-yellow-400 active:translate-y-0.5"
+                        : "bg-teal-600 hover:bg-teal-700 text-white active:translate-y-0.5"
+                    }`}
+                  >
+                    {audioState.isSpeaking && !audioState.isPaused ? (
+                      <>
+                        <Pause className="w-3 h-3" />
+                        <span>pausar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3 h-3 text-white fill-current" />
+                        <span>{audioState.isSpeaking ? "continuar" : "escuchar"}</span>
+                      </>
+                    )}
+                  </button>
+
+                  {audioState.isSpeaking && (
+                    <button
+                      onClick={handleStopSpeech}
+                      className="bg-red-500 hover:bg-red-600 text-white p-1.5 border-2 border-black shadow-[2px_2px_0px_black] active:translate-y-0.5 transition-all"
+                      title="Detener lectura"
+                    >
+                      <Square className="w-3 h-3 fill-current" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="h-2 bg-yellow-400 w-1/3"></div>
+              
+              <div className="prose prose-xl font-bold leading-tight space-y-6 text-2xl md:text-3xl text-justify italic">
+                <p>
+                  El cumpleaños de diez de nuestro amado Alero Coronel Dorrego oficialmente cae este <span className="bg-yellow-200 px-2 not-italic text-black">lunes 8 de Junio (¡mañana!)</span>. ¡Diez años haciendo nacer comunidad desde aquel primer día en el barrio!
+                </p>
+                <p>
+                  Pero como un hito de esta magnitud no cabe solo en pantallas móviles, <span className="text-teal-700 font-black not-italic underline">¡El Diario El Dorrego saldrá en formato físico!</span> Las rotativas analógicas del barrio están listas para imprimir este periódico escolar-comunitario en papel real y rugoso. Lo repartiremos de mano en mano el próximo <span className="bg-teal-100 px-2 not-italic">Sábado 27 de Junio</span>.
+                </p>
+                <p className="border-l-8 border-teal-500 pl-6 py-2 bg-teal-50/50">
+                  ¡Anoten bien! El <span className="text-teal-700 uppercase font-black not-italic border-b-4 border-teal-500">Sábado 27 de Junio</span> nos volveremos a abrazar, a bailar y a disfrutar de todo lo que venimos armando en cada una de las fábricas. ¡Habrá música, juegos, mantitas y por supuesto, sorpresas!
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-4 pt-4">
+                <div className="flex items-center gap-2 bg-black text-white px-4 py-2 font-black uppercase text-sm">
+                  <Newspaper className="w-5 h-5 text-yellow-400" />
+                  También en papel físico
+                </div>
+                <div className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 font-black uppercase text-sm shadow-[4px_4px_0px_black]">
+                  #27DeJunioSeFesteja
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-2/5 space-y-6">
+              {/* Fábrica de Objetos - Al final del recorrido con 2 mesas */}
+              <div className="relative transform rotate-1">
+                <div className="absolute inset-0 bg-black translate-x-3 translate-y-3"></div>
+                <div className="relative border-4 border-black bg-white p-2">
+                  <div className="aspect-[3/4] bg-slate-200 border-2 border-black overflow-hidden relative">
+                    <img 
+                      src="https://images.unsplash.com/photo-1547394765-185e1e68f34e?auto=format&fit=crop&q=80&w=600" 
+                      alt="Fábrica de objetos al final del recorrido en el Alero" 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-teal-500/10 pointer-events-none"></div>
+                    <div className="absolute bottom-4 left-4 right-4 bg-white border-2 border-black p-3 text-center">
+                      <p className="font-black uppercase text-xs leading-none">FÁBRICA DE OBJETOS</p>
+                      <p className="text-[10px] font-bold mt-1 opacity-90 uppercase text-rose-600 animate-pulse">¡AL FINAL DEL RECORRIDO!</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-yellow-300 border-4 border-black p-6 shadow-[8px_8px_0px_black] transform -rotate-1 space-y-4">
+                <div className="border-b-4 border-black pb-3">
+                  <h3 className="font-black uppercase text-lg leading-tight flex items-center gap-2">
+                    🛠️ FÁBRICA DE OBJETOS
+                  </h3>
+                  <p className="text-xs font-bold uppercase opacity-85 mt-1">
+                    Ubicada al final del recorrido. ¡Aquí ya no hacemos más bonetes, sino pura fiesta colgante y sorpresas!
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Mesa 1 */}
+                  <div className="bg-white border-2 border-black p-3 shadow-[3px_3px_0px_black] transform rotate-1">
+                    <h4 className="font-black text-xs uppercase text-teal-800 flex items-center gap-1.5">
+                      📌 MESA 1: TIERRAS DE PIÑATAS COLGANTES
+                    </h4>
+                    <p className="text-xs font-semibold text-gray-850 mt-1 leading-snug">
+                      En esta mesa estamos armando las <strong>piñatas coloridas y gigantes para colgar en todos lados</strong> de El Alero. ¡Estallarán de alegría y movimiento para celebrar los diez años!
+                    </p>
+                  </div>
+
+                  {/* Mesa 2 */}
+                  <div className="bg-white border-2 border-black p-3 shadow-[3px_3px_0px_black] transform -rotate-1">
+                    <h4 className="font-black text-xs uppercase text-rose-700 flex items-center gap-1.5">
+                      ✂️ MESA 2: MOLDES PARA RECORTE Y CAJITAS
+                    </h4>
+                    <p className="text-xs font-semibold text-gray-850 mt-1 leading-snug">
+                      Aquí tenemos los <strong>moldes de cartulina listos para recortar y armar las cajitas de sorpresas</strong>. Adentro de cada una vas a ver una sorpresa preciosa, ¡una hermosa sorpresita de cumpleaños creada junto a la Fábrica de la Palabra!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-[10px] font-black uppercase text-center border-t border-black/10 text-gray-700">
+                  ⚠️ ¡ATENCIÓN: CHAU BONETES, BIENVENIDAS LAS PIÑATAS COLGADAS!
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Interactive Module: TALLER DE TITULARES FANTÁSTICOS & DIBUJOS AL COSTADO */}
+      <section className="bg-amber-50 border-8 border-black p-6 md:p-10 shadow-[15px_15px_0px_black] relative overflow-hidden">
+        <div className="absolute top-0 right-0 bg-pink-500 text-white font-black px-6 py-2 uppercase text-sm border-b-4 border-l-4 border-black">
+          SÚPER DIVERTIDO
+        </div>
+        
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Newspaper className="w-12 h-12 text-teal-600" />
+              <div>
+                <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tight">
+                  TALLER DE TITULARES FANTÁSTICOS
+                </h2>
+                <p className="text-sm font-bold text-gray-750 uppercase">
+                  "Es muy aburrido poner una historia real... ¡Creamos el futuro con titulares mágicos!"
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-1 bg-black w-full"></div>
+
+          {/* Real-time interactive Preview - Showcasing selected drawing next to headline */}
+          <div className="relative bg-white border-4 border-black p-8 shadow-[8px_8px_0px_#0d9488] text-center transform rotate-1 my-6 min-h-[260px] flex flex-col justify-center items-center">
+            <div className="absolute top-2 left-4 text-[10px] font-black uppercase tracking-widest text-teal-600">
+               --- PRIMERA PLANA DE LA EDICIÓN IMPRESA ---
+            </div>
+            
+            <div className="flex flex-row items-center justify-center gap-6 max-w-3xl">
+              {/* Left Sticker/Drawing */}
+              <motion.div 
+                key={`left-${selectedDoodle}`}
+                initial={{ rotate: -45, scale: 0 }}
+                animate={{ rotate: -15, scale: 1.4 }}
+                className="text-5xl md:text-7xl select-none hidden sm:block filter drop-shadow-[3px_3px_0px_rgba(0,0,0,0.15)]"
+              >
+                {selectedDoodle}
+              </motion.div>
+
+              <div className="flex flex-col items-center">
+                <motion.h3 
+                  key={selectedHeadline}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="text-2xl md:text-4xl font-serif font-black tracking-tight leading-none uppercase italic text-teal-950 mb-4 px-2"
+                  style={{ fontFamily: 'Special Elite, serif' }}
+                >
+                  "{selectedHeadline}"
+                </motion.h3>
+                
+                <p className="text-xs font-black uppercase text-teal-700 border-t-2 border-dashed border-teal-600 pt-2 px-8">
+                  ¡Este titular saldrá impreso con dibujos al lado! Porque a la gente que quiere dibujar la dejamos plasmar toda su imaginación.
+                </p>
+              </div>
+
+              {/* Right Sticker/Drawing */}
+              <motion.div 
+                key={`right-${selectedDoodle}`}
+                initial={{ rotate: 45, scale: 0 }}
+                animate={{ rotate: 15, scale: 1.4 }}
+                className="text-5xl md:text-7xl select-none filter drop-shadow-[3px_3px_0px_rgba(0,0,0,0.15)]"
+              >
+                {selectedDoodle}
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Selector & Inputs */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
+            
+            {/* Presets Column */}
+            <div className="space-y-3 lg:col-span-1">
+              <p className="text-xs font-black uppercase text-gray-600">1. ELEGÍ TU TITULAR FANTÁSTICO:</p>
+              <div className="flex flex-col gap-2">
+                {fantasticPresets.map((preset, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedHeadline(preset)}
+                    className={`text-left text-xs font-black p-3 border-2 border-black transition-all uppercase ${selectedHeadline === preset ? 'bg-teal-600 text-white translate-x-1 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🚀 {preset}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Input Column with Doodle selection */}
+            <div className="space-y-4 lg:col-span-1 bg-white border-4 border-black p-6 shadow-[5px_5px_0px_black]">
+              <p className="text-xs font-black uppercase text-gray-600 flex items-center gap-1">
+                <Sparkles className="w-4 h-4 text-pink-500" /> 2. O INVENTÁ TU PROPIO TEXTO ALOCADO:
+              </p>
+              
+              <form onSubmit={handleCustomSubmit} className="space-y-3">
+                <textarea
+                  value={customHeadline}
+                  onChange={(e) => setCustomHeadline(e.target.value)}
+                  placeholder="Ej: ¡UNA CHANCHA GIGANTE VUELA SOBRE COMPLEJO EL DORREGO!"
+                  maxLength={120}
+                  className="w-full border-4 border-black p-3 text-xs font-bold uppercase placeholder:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 h-24"
+                />
+                
+                <button
+                  type="submit"
+                  className="w-full bg-black text-white hover:bg-teal-600 transition-colors py-2 text-xs font-black uppercase border-2 border-black shadow-[3px_3px_0px_#0d9488]"
+                >
+                  ¡CREAR TITULAR!
+                </button>
+              </form>
+
+              <div className="border-t-2 border-black/10 pt-4">
+                <p className="text-xs font-black uppercase text-gray-600 mb-2">🎨 3. ¿DIBUJAR AL LADO? ¡SÍ, SE PUEDE!</p>
+                <p className="text-[10px] font-bold text-gray-500 uppercase leading-tight mb-2">
+                  "Como hay gente que quiere dibujar junto al titular, ¡los dejamos expresarse libremente! Elegí un dibujo para plasmar al lado de tus letras:"
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {doodles.map((d, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setSelectedDoodle(d.char)}
+                      title={d.label}
+                      className={`text-2xl p-2 border-2 border-black rounded transition-all ${selectedDoodle === d.char ? 'bg-yellow-300 scale-110 shadow-[2px_2px_0px_black]' : 'bg-gray-50 hover:bg-white'}`}
+                    >
+                      {d.char}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Explainer: ¿Y QUÉ ES UN DIARIO? */}
+            <div className="space-y-3 lg:col-span-1 bg-blue-50 border-4 border-black p-6 shadow-[8px_8px_0px_#3b82f6] flex flex-col justify-between">
+              <div>
+                <p className="inline-block bg-blue-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded mb-2">
+                  💡 PREGUNTA DEL PATIO
+                </p>
+                <h3 className="font-serif italic font-black text-xl text-blue-950 uppercase leading-none">
+                  ¿Qué es un Diario?
+                </h3>
+                <p className="text-xs font-black uppercase text-blue-700 mb-2">
+                  (Para quienes no sabían)
+                </p>
+                <div className="h-0.5 bg-blue-200 my-2"></div>
+                <p className="text-xs font-bold text-blue-900 leading-snug uppercase">
+                  "En los talleres del Alero nos dimos cuenta de que hay gente que no sabe qué es un diario físico impreso... ¡y tiene todo el sentido en estos tiempos! Hoy les contamos con mucho amor: un diario es un papel grande lleno de historias del barrio, verdades compartidas y fantasías. Es como una carta gigante escrita por muchos vecinos para guardar los sueños de El Alero, el brillo de las fábricas y recordar cuándo nos volvemos a abrazar."
+                </p>
+              </div>
+
+              <div className="border-t border-blue-200 pt-3 text-[10px] font-black text-blue-600 flex items-center gap-1">
+                <span>📖 ¡CULTURA E HISTORIAS DE NUESTRO BARRIO!</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Mini Section: Las Fábricas Siguen Libres & Buzón de Deseos */}
+      <div className="space-y-8">
+        
+        {/* EL ALMA TEXTIL */}
+        <section className="bg-teal-900 text-white border-4 border-black p-8 shadow-[10px_10px_0px_yellow]">
+          <h2 className="text-3xl font-black mb-6 uppercase flex items-center gap-3 justify-center md:justify-start">
+             <Scissors className="w-8 h-8 text-yellow-300" /> EL ALMA TEXTIL
+          </h2>
+          <div className="space-y-4 text-xl font-bold italic leading-tight text-center md:text-left max-w-4xl">
+            <p>"Las mantitas siguen bordándose puntada tras puntada para los recién nacidos de junio. El frío santafesino nos encuentra abrigados y unidos."</p>
+            <div className="border-t-2 border-white/20 pt-4 font-black uppercase text-xs tracking-widest text-teal-300">
+               Fábrica Bienvenida al Mundo Textil
+            </div>
+          </div>
+        </section>
+
+        {/* BUZÓN DE NUESTROS SUEÑOS Y DESEOS */}
+        <section className="bg-yellow-100 text-black border-4 border-black p-6 md:p-8 shadow-[12px_12px_0px_black] relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-teal-600 text-white font-black px-4 py-1.5 uppercase text-xs border-b-2 border-l-2 border-black">
+            📬 COMUNIDAD ACTIVA
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-extrabold uppercase tracking-tight flex items-center gap-3">
+                💌 EL BUZÓN DE DESEOS DEL ALERO
+              </h2>
+              <p className="text-xs font-black uppercase text-teal-850 mt-1">
+                Escribí tu deseo para los 10 años de El Alero. ¡Quedará guardado para siempre en el corazón del diario!
+              </p>
+            </div>
+
+            {/* Input & List Form */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Write wish column */}
+              <div className="lg:col-span-1 bg-white border-4 border-black p-5 shadow-[4px_4px_0px_black] space-y-4 flex flex-col justify-between">
+                <form onSubmit={handleWishSubmit} className="space-y-4">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase text-gray-700 block">
+                      👤 ¿Cómo te llamás? (O vecino/a):
+                    </label>
+                    <input
+                      type="text"
+                      value={newWishAuthor}
+                      onChange={(e) => setNewWishAuthor(e.target.value)}
+                      placeholder="Ej: Valeria Carolina, Juan..."
+                      maxLength={40}
+                      className="w-full border-2 border-black px-3 py-2 text-xs font-bold uppercase placeholder:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-teal-50/20"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-black uppercase text-gray-700 block">
+                      ✍️ Tu deseo mágico para El Alero:
+                    </label>
+                    <textarea
+                      value={newWishText}
+                      onChange={(e) => setNewWishText(e.target.value)}
+                      placeholder="Ej: Que siempre haya risas, música, pintura y encuentros hermosos en el patio..."
+                      maxLength={200}
+                      required
+                      className="w-full border-2 border-black p-3 text-xs font-semibold placeholder:opacity-50 focus:outline-none focus:ring-2 focus:ring-teal-500 h-28 bg-yellow-50/20"
+                    />
+                    <div className="flex justify-between items-center text-[9px] font-bold text-gray-500 mt-1 uppercase">
+                      <span>{newWishText.length}/200 caracteres</span>
+                    </div>
+                  </div>
+
+                  {wishError && (
+                    <div className="text-[10px] bg-red-100 border border-red-400 text-red-700 p-2 font-black uppercase">
+                      ⚠️ {wishError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isSubmittingWish}
+                    className="w-full bg-black text-white hover:bg-teal-600 active:translate-y-1 disabled:opacity-50 transition-all py-3 text-xs font-black uppercase border-2 border-black shadow-[4px_4px_0px_#115e59]"
+                  >
+                    {isSubmittingWish ? "Guardando..." : "✨ ¡MANDAR DESEO AL BUZÓN!"}
+                  </button>
+                </form>
+
+                <p className="text-[10px] font-bold text-gray-500 uppercase leading-tight border-t border-gray-100 pt-3">
+                  💡 Este buzón guarda los deseos directamente en el servidor. Tu mensaje permanecerá visible para todas las personas que entren, sin borrarse al actualizar.
+                </p>
+              </div>
+
+              {/* Show wishes board */}
+              <div className="lg:col-span-2 space-y-3">
+                <p className="text-xs font-black uppercase text-teal-900 border-b-2 border-dashed border-teal-800 pb-1 flex items-center gap-1.5">
+                  ✨ DESEOS RECIBIDOS ({wishes.length})
+                </p>
+                
+                {wishes.length === 0 ? (
+                  <div className="bg-white border-2 border-black border-dashed p-10 text-center text-xs font-bold text-gray-500 uppercase">
+                    Cargando deseos del baúl... ¡Sé el primero en dejar tu huella!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[380px] overflow-y-auto pr-2 custom-scrollbar">
+                    <AnimatePresence initial={false}>
+                      {wishes.map((wish, index) => {
+                        // alternate sticky note colors
+                        const colors = [
+                          "bg-amber-100 border-amber-300 text-amber-950 shadow-[3px_3px_0px_#d97706]",
+                          "bg-rose-100 border-rose-300 text-rose-950 shadow-[3px_3px_0px_#e11d48]",
+                          "bg-emerald-100 border-emerald-300 text-emerald-950 shadow-[3px_3px_0px_#059669]",
+                          "bg-sky-100 border-sky-300 text-sky-950 shadow-[3px_3px_0px_#0284c7]",
+                        ];
+                        const rotate = index % 3 === 0 ? "rotate-1" : index % 3 === 1 ? "-rotate-1" : "rotate-0";
+                        const stickerColor = colors[index % colors.length];
+
+                        return (
+                          <motion.div
+                            key={wish.id}
+                            initial={{ scale: 0.8, opacity: 0, y: 15 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className={`p-4 border-2 border-black rounded ${stickerColor} ${rotate} flex flex-col justify-between min-h-[110px]`}
+                          >
+                            <p className="text-xs font-bold leading-relaxed italic">
+                              "{wish.text}"
+                            </p>
+                            <div className="mt-2 pt-2 border-t border-black/10 flex justify-between items-center text-[10px] font-black uppercase">
+                              <span className="truncate">👤 - {wish.author}</span>
+                              <span className="opacity-60 text-[8px]">
+                                {new Date(wish.date).toLocaleDateString("es-AR", {
+                                  day: "numeric",
+                                  month: "short"
+                                })}
+                              </span>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* LA FÁBRICA DE LA PALABRA */}
+        <section className="bg-pink-100 text-black border-4 border-black p-8 shadow-[10px_10px_0px_black] transform rotate-1">
+          <h2 className="text-3xl font-black mb-4 uppercase flex items-center gap-2 justify-center md:justify-start">
+            <Paintbrush className="w-8 h-8 text-pink-600 animate-pulse" /> LA FÁBRICA DE LA PALABRA
+          </h2>
+          <div className="space-y-3">
+            <p className="text-xs bg-yellow-300 border-2 border-black p-2 font-black uppercase leading-none inline-block transform -rotate-2">
+               ¡HUELE A PINTURA FRESCA! 🎨
+            </p>
+            <p className="text-xl font-bold leading-tight italic mt-2 text-center md:text-left">
+              "Estuvimos remodelando por completo nuestro espacio con paredes coloridas y repisas llenas de brillo. ¡La Fábrica de la Palabra estrena look para imprimir los periódicos físicos y llenarse de titulares y cuentos fantásticos! Además, esta fábrica es el lugar central donde va a estar y nacer el queridísimo periódico de El Alero."
+            </p>
+          </div>
+          <div className="h-1 bg-black w-full my-4"></div>
+          <p className="font-black uppercase text-xs text-center md:text-left">Fábrica de la Palabra: hilos, pintura y textos que cruzan el barrio. ¡Aquí vive el Diario de El Alero!</p>
+        </section>
+      </div>
+
+      {/* Stickers / Footer area */}
+      <div className="flex flex-wrap justify-center gap-6 py-8">
+        <div className="bg-teal-500 text-white font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-12 hover:rotate-0 transition-transform cursor-pointer">
+          SÁBADO 27 DE JUNIO
+        </div>
+        <div className="bg-yellow-400 text-black font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform -rotate-6 hover:rotate-0 transition-transform cursor-pointer">
+          8 DE JUNIO REAL
+        </div>
+        <div className="bg-black text-white font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-2 hover:rotate-0 transition-transform cursor-pointer">
+          HACIENDO TRAMA
+        </div>
+      </div>
     </div>
   );
 }
