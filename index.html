@@ -2,6 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Suppress Vite's transient WebSocket and HMR connection errors in this dev environment
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && (
+          event.reason.message?.includes('WebSocket') || 
+          event.reason.message?.includes('websocket') || 
+          event.reason.message?.includes('HMR') ||
+          String(event.reason).includes('WebSocket') ||
+          String(event.reason).includes('websocket')
+        )) {
+          console.warn('Swallowed transient sandbox WebSocket rejection:', event.reason);
+          event.preventDefault();
+        }
+      });
+      window.addEventListener('error', function(event) {
+        if (event.message && (
+          event.message.includes('WebSocket') || 
+          event.message.includes('websocket') ||
+          event.message.includes('HMR')
+        )) {
+          console.warn('Swallowed transient sandbox WebSocket error:', event.message);
+          event.preventDefault();
+        }
+      }, true); // capture phase to handle resource/web-socket level errors
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
