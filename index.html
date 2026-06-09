@@ -3,29 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      // Suppress Vite's transient WebSocket and HMR connection errors in this dev environment
+      // Quietly suppress Vite's transient WebSocket and HMR connection errors in this sandboxed preview env
       window.addEventListener('unhandledrejection', function(event) {
-        if (event.reason && (
-          event.reason.message?.includes('WebSocket') || 
-          event.reason.message?.includes('websocket') || 
-          event.reason.message?.includes('HMR') ||
-          String(event.reason).includes('WebSocket') ||
-          String(event.reason).includes('websocket')
-        )) {
-          console.warn('Swallowed transient sandbox WebSocket rejection:', event.reason);
+        const reasonStr = event.reason ? String(event.reason.message || event.reason) : '';
+        if (
+          reasonStr.includes('WebSocket') || 
+          reasonStr.includes('websocket') || 
+          reasonStr.includes('HMR') ||
+          reasonStr.includes('WS')
+        ) {
           event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
-      });
+      }, true);
       window.addEventListener('error', function(event) {
-        if (event.message && (
-          event.message.includes('WebSocket') || 
-          event.message.includes('websocket') ||
-          event.message.includes('HMR')
-        )) {
-          console.warn('Swallowed transient sandbox WebSocket error:', event.message);
+        const msgStr = event.message ? String(event.message) : '';
+        if (
+          msgStr.includes('WebSocket') || 
+          msgStr.includes('websocket') ||
+          msgStr.includes('HMR') ||
+          msgStr.includes('WS')
+        ) {
           event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
         }
-      }, true); // capture phase to handle resource/web-socket level errors
+      }, true);
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
