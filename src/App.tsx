@@ -96,32 +96,6 @@ const GlobalStyles = () => (
         break-inside: avoid;
       }
     }
-
-    /* Prevent html2canvas box-shadow bugs rendering solid black boxes/lines, and fix column divider lines */
-    #printable-area.pdf-generating {
-      border: none !important;
-      box-shadow: none !important;
-      background-color: #ffffff !important;
-    }
-    #printable-area.pdf-generating * {
-      box-shadow: none !important;
-      text-shadow: none !important;
-    }
-    #printable-area.pdf-generating aside,
-    #printable-area.pdf-generating .border-r-\[6px\] {
-      border-right: none !important;
-    }
-    #printable-area.pdf-generating p,
-    #printable-area.pdf-generating h1,
-    #printable-area.pdf-generating h2,
-    #printable-area.pdf-generating h3,
-    #printable-area.pdf-generating img,
-    #printable-area.pdf-generating li,
-    #printable-area.pdf-generating section,
-    #printable-area.pdf-generating article {
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-    }
   `}} />
 );
 
@@ -1051,9 +1025,20 @@ function Edition04() {
                 <p>
                   Pero lo más importante: las fábricas estuvieron a mil. En <span className="bg-yellow-200 px-2 not-italic">Bienvenida al Mundo Textil</span> seguimos bordando las mantitas, y en la <span className="bg-pink-100 px-2 not-italic">Fábrica de la Palabra</span> no paramos de crear.
                 </p>
-                <p className="border-l-8 border-pink-500 pl-6 py-2 bg-pink-50">
-                  Además, ¡ya se siente el festejo! Estamos armando los <span className="text-pink-600 uppercase font-black not-italic">bonetes y gorritos</span> (que son lo mismo, ¡pura fiesta!) para los 10 años del Alero; los hicimos aparte cortando un espiral de papel que pusimos alrededor de cada uno para que tengan movimiento y ritmo. ¡Estamos de fiesta!
-                </p>
+                <div className="border-l-8 border-pink-500 pl-6 py-4 bg-pink-50 space-y-3">
+                  <p className="text-pink-600 uppercase font-black not-italic text-sm tracking-wider">
+                    Preparación de los bonetes
+                  </p>
+                  <p className="not-italic text-lg md:text-xl font-bold leading-normal text-black">
+                    Se preparan los bonetes de fiesta: hechos a mano, de colores.
+                  </p>
+                  <p className="text-pink-600 uppercase font-black not-italic text-xs tracking-wider">
+                    ¿Cómo se arman?
+                  </p>
+                  <p className="not-italic text-base md:text-lg font-bold leading-relaxed text-black/80">
+                    Sobre una cartulina redonda se dibuja y recorta una espiral en forma de zigzag. Luego se pega la punta en la parte superior del bonete, para que quede suelta y se mueva al girar.
+                  </p>
+                </div>
               </div>
 
               <div className="flex gap-4 pt-4">
@@ -1094,7 +1079,7 @@ function Edition04() {
               
               <div className="bg-yellow-400 border-4 border-black p-6 shadow-[8px_8px_0px_black] transform -rotate-1">
                 <h3 className="font-black uppercase text-lg mb-2">DATO DEL DÍA:</h3>
-                <p className="font-black text-sm italic">"Los bonetes o gorritos fueron hechos aparte con espirales cortados a mano que giran al compás del festejo. ¡Pura magia y movimiento en El Alero!"</p>
+                <p className="font-black text-sm italic">"Los bonetes fueron hechos aparte con espirales en zigzag cortadas a mano que giran al compás del festejo. ¡Pura magia y movimiento en El Alero!"</p>
               </div>
             </div>
           </div>
@@ -1365,7 +1350,6 @@ export default function App() {
 
     const element = document.getElementById('printable-area');
     if (element) {
-      element.classList.add('pdf-generating');
       const allElements = [element, ...Array.from(element.querySelectorAll('*'))] as HTMLElement[];
       
       allElements.forEach((el) => {
@@ -1416,15 +1400,12 @@ export default function App() {
         html2canvas:  { 
           scale: 2, 
           useCORS: true, 
+          letterRendering: true,
           scrollX: 0,
           scrollY: 0,
           windowWidth: 1024
         },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { 
-          mode: ['css', 'legacy'],
-          avoid: ['p', 'h1', 'h2', 'h3', 'section', 'article', 'li', 'img', 'blockquote']
-        }
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       await html2pdfLib().from(element).set(opt).save();
@@ -1436,10 +1417,6 @@ export default function App() {
       alert('Hubo un inconveniente generando el PDF automático. Se abrirá la ventana de impresión para guardarlo como PDF.');
       window.print();
     } finally {
-      if (element) {
-        element.classList.remove('pdf-generating');
-      }
-      
       // Restore all original <style> text contents
       originalStyleContentsByElement.forEach((originalText, styleEl) => {
         styleEl.textContent = originalText;
