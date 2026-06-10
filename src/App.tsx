@@ -26,7 +26,9 @@ import {
   Play,
   Pause,
   Square,
-  AudioLines
+  AudioLines,
+  Download,
+  Printer
 } from "lucide-react";
 
 // --- STYLES ---
@@ -60,6 +62,65 @@ const GlobalStyles = () => (
         width: 149.25% !important; /* compensate for scale 0.67 (1/0.67) */
         margin-left: -24.625%;
       }
+    }
+
+    @media print {
+      body, html {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        zoom: 100% !important;
+      }
+      .zoom-container {
+        zoom: 100% !important;
+        transform: none !important;
+        padding: 0 !important;
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+      }
+      #btn-menu, [data-html2canvas-ignore="true"], .pdf-download-center {
+        display: none !important;
+      }
+      #printable-area {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+      /* Prevent bad breaks */
+      p, h1, h2, h3, img, li, section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
+
+    /* Prevent html2canvas box-shadow bugs rendering solid black boxes/lines, and fix column divider lines */
+    #printable-area.pdf-generating {
+      border: none !important;
+      box-shadow: none !important;
+      background-color: #ffffff !important;
+    }
+    #printable-area.pdf-generating * {
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+    #printable-area.pdf-generating aside,
+    #printable-area.pdf-generating .border-r-\[6px\] {
+      border-right: none !important;
+    }
+    #printable-area.pdf-generating p,
+    #printable-area.pdf-generating h1,
+    #printable-area.pdf-generating h2,
+    #printable-area.pdf-generating h3,
+    #printable-area.pdf-generating img,
+    #printable-area.pdf-generating li,
+    #printable-area.pdf-generating section,
+    #printable-area.pdf-generating article {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
     }
   `}} />
 );
@@ -1080,6 +1141,9 @@ function Edition04() {
 
 export default function App() {
   const [showMenu, setShowMenu] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfSuccess, setPdfSuccess] = useState(false);
+  
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
@@ -1098,12 +1162,334 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const generatePDF = async () => {
+    setIsGeneratingPdf(true);
+    // Give a small timeout to let the state register and layout scale up
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    // Simple OKLAB and OKLCH to RGB converter for html2canvas compatibility
+    const oklabToRgb = (L: number, a: number, b: number, alpha?: number): string => {
+      const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+      const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+      const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+      
+      const l3 = l_ * l_ * l_;
+      const m3 = m_ * m_ * m_;
+      const s3 = s_ * s_ * s_;
+      
+      const r = +4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
+      const g = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
+      const b_ = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
+      
+      const clamp = (val: number) => Math.max(0, Math.min(1, val));
+      const r8 = Math.round(clamp(r <= 0.0031308 ? 12.92 * r : 1.055 * Math.pow(r, 1 / 2.4) - 0.055) * 255);
+      const g8 = Math.round(clamp(g <= 0.0031308 ? 12.92 * g : 1.055 * Math.pow(g, 1 / 2.4) - 0.055) * 255);
+      const b8 = Math.round(clamp(b_ <= 0.0031308 ? 12.92 * b_ : 1.055 * Math.pow(b_, 1 / 2.4) - 0.055) * 255);
+      
+      if (alpha !== undefined && alpha !== 1) {
+        return `rgba(${r8}, ${g8}, ${b8}, ${alpha})`;
+      }
+      return `rgb(${r8}, ${g8}, ${b8})`;
+    };
+
+    const oklchToRgb = (l: number, c: number, h: number, a?: number): string => {
+      const hRad = (h * Math.PI) / 180;
+      const a_ = c * Math.cos(hRad);
+      const b_ = c * Math.sin(hRad);
+      return oklabToRgb(l, a_, b_, a);
+    };
+
+    const replaceOklchString = (str: any): any => {
+      if (typeof str !== 'string') return str;
+      if (!str.includes('oklch') && !str.includes('oklab')) return str;
+      
+      let res = str;
+
+      if (res.includes('oklch')) {
+        res = res.replace(/oklch\(([^)]+)\)/g, (match, content) => {
+          const parts = content.trim().split(/[\s,/]+/);
+          if (parts.length >= 3) {
+            const lVal = parts[0];
+            const cVal = parts[1];
+            const hVal = parts[2];
+            const aVal = parts[3];
+            
+            let l = parseFloat(lVal);
+            if (lVal.includes('%')) l = parseFloat(lVal) / 100;
+            let c = parseFloat(cVal);
+            if (cVal.includes('%')) c = parseFloat(cVal) / 100;
+            let h = parseFloat(hVal);
+            
+            let a = 1;
+            if (aVal !== undefined) {
+              a = parseFloat(aVal);
+              if (aVal.includes('%')) a = parseFloat(aVal) / 100;
+            }
+            
+            try {
+              return oklchToRgb(l, c, h, a);
+            } catch (e) {
+              return 'rgb(0,0,0)';
+            }
+          }
+          return match;
+        });
+      }
+
+      if (res.includes('oklab')) {
+        res = res.replace(/oklab\(([^)]+)\)/g, (match, content) => {
+          const parts = content.trim().split(/[\s,/]+/);
+          if (parts.length >= 3) {
+            const lVal = parts[0];
+            const aVal = parts[1];
+            const bVal = parts[2];
+            const alphaVal = parts[3];
+            
+            let L = parseFloat(lVal);
+            if (lVal.includes('%')) L = parseFloat(lVal) / 100;
+            let a = parseFloat(aVal);
+            if (aVal.includes('%')) a = parseFloat(aVal) / 100;
+            let b = parseFloat(bVal);
+            if (bVal.includes('%')) b = parseFloat(bVal) / 100;
+            
+            let alpha = 1;
+            if (alphaVal !== undefined) {
+              alpha = parseFloat(alphaVal);
+              if (alphaVal.includes('%')) alpha = parseFloat(alphaVal) / 100;
+            }
+            
+            try {
+              return oklabToRgb(L, a, b, alpha);
+            } catch (e) {
+              return 'rgb(0,0,0)';
+            }
+          }
+          return match;
+        });
+      }
+
+      return res;
+    };
+
+    const styleElements = Array.from(document.querySelectorAll('style'));
+    const originalStyleContentsByElement = new Map<HTMLStyleElement, string>();
+    const restoredInlineStyles: { element: HTMLElement; prop: string; value: string; priority: string }[] = [];
+    const restoredCSSRules: { rule: CSSStyleRule; prop: string; value: string; priority: string }[] = [];
+    const temporaryStylesheets: HTMLStyleElement[] = [];
+    const restoredLinkStates: { element: HTMLLinkElement; disabled: boolean }[] = [];
+
+    // Temporarily replace OKLCH/OKLAB in all <style> tags on the page
+    // This removes oklch/oklab from stylesheets parsed by html2canvas
+    styleElements.forEach((styleEl) => {
+      const originalText = styleEl.textContent;
+      if (originalText && (originalText.toLowerCase().includes('oklch') || originalText.toLowerCase().includes('oklab'))) {
+        originalStyleContentsByElement.set(styleEl, originalText);
+        styleEl.textContent = replaceOklchString(originalText);
+      }
+    });
+
+    // Directly traverse and convert all rules in document.styleSheets CSSOM to avoid html2canvas crashes on CSS variable declarations
+    const traverseAndConvertSheetRules = () => {
+      try {
+        const sheets = Array.from(document.styleSheets);
+        sheets.forEach((sheet) => {
+          try {
+            if (!sheet.cssRules) return;
+            const traverse = (rulesList: CSSRuleList) => {
+              Array.from(rulesList).forEach((rule) => {
+                if (rule instanceof CSSStyleRule) {
+                  const style = rule.style;
+                  if (style && style.length) {
+                    const props = Array.from(style);
+                    props.forEach((prop) => {
+                      const val = style.getPropertyValue(prop);
+                      if (val && (val.toLowerCase().includes('oklch') || val.toLowerCase().includes('oklab'))) {
+                        const priority = style.getPropertyPriority(prop);
+                        restoredCSSRules.push({
+                          rule,
+                          prop,
+                          value: val,
+                          priority
+                        });
+                        const converted = replaceOklchString(val);
+                        style.setProperty(prop, converted, priority);
+                      }
+                    });
+                  }
+                } else if ('cssRules' in rule) {
+                  traverse((rule as any).cssRules);
+                }
+              });
+            };
+            traverse(sheet.cssRules);
+          } catch (e) {
+            // Ignore access errors on cross-origin stylesheets
+          }
+        });
+      } catch (globalErr) {
+        console.error('Error traversing stylesheets:', globalErr);
+      }
+    };
+
+    traverseAndConvertSheetRules();
+
+    // Fetch and convert any external stylesheets (e.g., <link rel="stylesheet">) that might be on the same origin
+    const linkElements = Array.from(document.querySelectorAll('link[rel="stylesheet"]')) as HTMLLinkElement[];
+    for (const link of linkElements) {
+      if (link.href && link.href.startsWith(window.location.origin)) {
+        try {
+          const res = await fetch(link.href);
+          if (res.ok) {
+            const cssText = await res.text();
+            if (cssText.toLowerCase().includes('oklch') || cssText.toLowerCase().includes('oklab')) {
+              // Convert stylesheet content to standard rgb/rgba
+              const convertedCss = replaceOklchString(cssText);
+              
+              // Create temporary styling tag
+              const tempStyle = document.createElement('style');
+              tempStyle.setAttribute('data-temp-pdf-style', 'true');
+              tempStyle.textContent = convertedCss;
+              document.head.appendChild(tempStyle);
+              temporaryStylesheets.push(tempStyle);
+
+              // Disable original link tag
+              restoredLinkStates.push({ element: link, disabled: link.disabled });
+              link.disabled = true;
+            }
+          }
+        } catch (fetchErr) {
+          console.warn('Failed to pre-fetch and convert stylesheet rules for PDF generation:', link.href, fetchErr);
+        }
+      }
+    }
+
+    const element = document.getElementById('printable-area');
+    if (element) {
+      element.classList.add('pdf-generating');
+      const allElements = [element, ...Array.from(element.querySelectorAll('*'))] as HTMLElement[];
+      
+      allElements.forEach((el) => {
+        if (!el.style || !el.style.length) return;
+        const styleProps = Array.from(el.style);
+        styleProps.forEach((prop) => {
+          const inlineVal = el.style.getPropertyValue(prop);
+          if (inlineVal && (inlineVal.toLowerCase().includes('oklch') || inlineVal.toLowerCase().includes('oklab'))) {
+            const originalPriority = el.style.getPropertyPriority(prop);
+            restoredInlineStyles.push({
+              element: el,
+              prop,
+              value: inlineVal,
+              priority: originalPriority
+            });
+            el.style.setProperty(prop, replaceOklchString(inlineVal), originalPriority);
+          }
+        });
+      });
+    }
+
+    try {
+      const loadHtml2Pdf = () => {
+        return new Promise((resolve, reject) => {
+          if ((window as any).html2pdf) {
+            resolve((window as any).html2pdf);
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          script.crossOrigin = 'anonymous';
+          script.onload = () => resolve((window as any).html2pdf);
+          script.onerror = () => reject(new Error('Failed to load html2pdf'));
+          document.body.appendChild(script);
+        });
+      };
+
+      const html2pdfLib: any = await loadHtml2Pdf();
+      
+      if (!element) {
+        throw new Error('Element containing the journal edition not found');
+      }
+
+      const opt = {
+        margin:       [10, 10, 10, 10],
+        filename:     `El_Dorrego_Volt_0${edition}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true, 
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: 1024
+        },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { 
+          mode: ['css', 'legacy'],
+          avoid: ['p', 'h1', 'h2', 'h3', 'section', 'article', 'li', 'img', 'blockquote']
+        }
+      };
+
+      await html2pdfLib().from(element).set(opt).save();
+
+      setPdfSuccess(true);
+      setTimeout(() => setPdfSuccess(false), 4000);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Hubo un inconveniente generando el PDF automático. Se abrirá la ventana de impresión para guardarlo como PDF.');
+      window.print();
+    } finally {
+      if (element) {
+        element.classList.remove('pdf-generating');
+      }
+      
+      // Restore all original <style> text contents
+      originalStyleContentsByElement.forEach((originalText, styleEl) => {
+        styleEl.textContent = originalText;
+      });
+      
+      // Remove all temporary styles created for links
+      temporaryStylesheets.forEach((tempStyle) => {
+        if (tempStyle && tempStyle.parentNode) {
+          tempStyle.parentNode.removeChild(tempStyle);
+        }
+      });
+
+      // Restore original <link> tag disabled statuses
+      restoredLinkStates.forEach(({ element, disabled }) => {
+        if (element) {
+          element.disabled = disabled;
+        }
+      });
+
+      // Restore all original CSSOM style rules
+      restoredCSSRules.forEach(({ rule, prop, value, priority }) => {
+        try {
+          if (value) {
+            rule.style.setProperty(prop, value, priority);
+          } else {
+            rule.style.removeProperty(prop);
+          }
+        } catch (e) {
+          // Ignore
+        }
+      });
+
+      // Restore all original inline styles
+      restoredInlineStyles.forEach(({ element, prop, value, priority }) => {
+        if (value) {
+          element.style.setProperty(prop, value, priority);
+        } else {
+          element.style.removeProperty(prop);
+        }
+      });
+      setIsGeneratingPdf(false);
+    }
+  };
+
   return (
     <div 
       className="min-h-screen bg-[#dcdcdc] flex justify-center p-4 md:p-10 font-mono paper-texture overflow-x-hidden zoom-container"
       style={{ 
-        zoom: "67%",
-        WebkitZoom: "67%",
+        zoom: isGeneratingPdf ? "100%" : "67%",
+        WebkitZoom: isGeneratingPdf ? "100%" : "67%",
       } as any}
     >
       <GlobalStyles />
@@ -1222,12 +1608,56 @@ export default function App() {
         transition={{ duration: 0.5 }}
         className="max-w-5xl w-full bg-[#fdfdfd] shadow-[0_30px_100px_rgba(0,0,0,0.3)] border-x-[12px] border-black p-6 md:p-14 relative overflow-hidden"
       >
-        {edition === 1 && <Edition01 />}
-        {edition === 2 && <Edition02 />}
-        {edition === 3 && <Edition03 />}
-        {edition === 4 && <Edition04 />}
-        {edition === 5 && <Edition05 />}
-        {edition === 6 && <Edition06 />}
+        <div id="printable-area" className="w-full">
+          {edition === 1 && <Edition01 />}
+          {edition === 2 && <Edition02 />}
+          {edition === 3 && <Edition03 />}
+          {edition === 4 && <Edition04 />}
+          {edition === 5 && <Edition05 />}
+          {edition === 6 && <Edition06 />}
+        </div>
+
+        {/* Centro de Descarga de PDF / Guardado */}
+        <div 
+          className="mt-6 pt-4 border-t border-dashed border-black/10 pdf-download-center flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-gray-500 text-[10px] font-bold"
+          data-html2canvas-ignore="true"
+        >
+          <div className="flex items-center gap-1">
+            <span className="font-sans">
+              📰 Para conservar o imprimir esta edición (Vol. 0{edition}) en papel:
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={generatePDF}
+              disabled={isGeneratingPdf}
+              className="bg-black text-white hover:bg-gray-800 disabled:bg-gray-200 font-bold uppercase text-[9px] px-2.5 py-1.5 border border-black shadow-[1.5px_1.5px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              {isGeneratingPdf ? (
+                <>
+                  <span className="animate-spin inline-block w-2.5 h-2.5 border border-white border-t-transparent rounded-full"></span>
+                  CONVIRTIENDO...
+                </>
+              ) : pdfSuccess ? (
+                <span>✓ ¡GUARDADO!</span>
+              ) : (
+                <>
+                  <Download className="w-3 h-3 text-white" />
+                  DESCARGAR PDF
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="bg-white text-black hover:bg-gray-50 font-bold uppercase text-[9px] px-2.5 py-1.5 border border-black shadow-[1.5px_1.5px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-0.5 active:translate-y-0.5 transition-all flex items-center gap-1 cursor-pointer"
+            >
+              <Printer className="w-3 h-3 text-black" />
+              IMPRIMIR
+            </button>
+          </div>
+        </div>
 
         {/* Decorative elements */}
         <div className="absolute top-1/2 -right-20 transform -translate-y-1/2 rotate-90 text-8xl font-black opacity-[0.03] pointer-events-none select-none uppercase tracking-[1em]">
