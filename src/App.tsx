@@ -1568,9 +1568,11 @@ export default function App() {
               )}
               {edition === 6 && (
                 <>
-                  <a href="#inicio-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-pink-400 transition-colors border-b border-white/10 pb-1 text-pink-300 animate-pulse">¡CUMPLE REAL HOY!</a>
-                  <a href="#sin-festejo-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">¿Por qué hoy no?</a>
-                  <a href="#deseos-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-cyan-400 transition-colors border-b border-white/10 pb-1">Buzón de Deseos</a>
+                  <a href="#inicio-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-sky-400 transition-colors border-b border-white/10 pb-1 text-sky-300 animate-pulse">⚽ Edición Mundial</a>
+                  <a href="#mundial-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1">¿Y las Fábricas?</a>
+                  <a href="#seleccion-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-emerald-400 transition-colors border-b border-white/10 pb-1">Mi Selección</a>
+                  <a href="#penal-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-red-400 transition-colors border-b border-white/10 pb-1">¡Penal Alero!</a>
+                  <a href="#aliento-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-cyan-400 transition-colors border-b border-white/10 pb-1">Buzón de Aliento</a>
                 </>
               )}
             </nav>
@@ -2534,21 +2536,123 @@ function Edition05() {
 
 // --- EDICIÓN 06 ---
 function Edition06() {
-  const [daysLeftCeleb, setDaysLeftCeleb] = useState<number | null>(null);
   const [selectedHeadline, setSelectedHeadline] = useState<string>(
-    "¡HOY LUNES 8 DE JUNIO ES EL CUMPLEAÑOS REAL DE EL ALERO (10 AÑOS)! 🎂"
+    "¡FÁBRICAS DEL ALERO EN OTRA COSA, PERO EL DORREGO GRITA GOL MUNDIALISTA! 🏆"
   );
   const [customHeadline, setCustomHeadline] = useState<string>("");
-  const [selectedDoodle, setSelectedDoodle] = useState<string>("🎂");
+  const [selectedDoodle, setSelectedDoodle] = useState<string>("⚽");
 
-  // State for wishes
+  // State for database wishes (rebranded as Gritos de Aliento)
   const [wishes, setWishes] = useState<Array<{ id: number; author: string; text: string; date: string }>>([]);
   const [newWishAuthor, setNewWishAuthor] = useState<string>("");
   const [newWishText, setNewWishText] = useState<string>("");
   const [isSubmittingWish, setIsSubmittingWish] = useState<boolean>(false);
   const [wishError, setWishError] = useState<string | null>(null);
 
-  // --- AUDIO / TEXT TO SPEECH (VOZ CÁLIDA DE VECINA DE EL ALERO) ---
+  // --- INTERACTIVE SELECT FIELD (MI SELECCIÓN DEL BARRIO) ---
+  const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
+  const [selectedPlayers, setSelectedPlayers] = useState<Record<string, { name: string; icon: string; power: string }>>({
+    arquero: { name: "El Búho del Patio", icon: "🦉", power: "Visión periférica de 180° y tapadas nocturnas" },
+    defensor: { name: "La Tejedora del Barrio", icon: "🧶", power: "Defensa impenetrable tejiendo redes" },
+    mediocampista: { name: "El Profe de Reciclado", icon: "♻️", power: "Pases precisos de cartón y tapitas" },
+    delantero: { name: "La Vecina de las Tortas", icon: "🍰", power: "Gambetas dulces y potencia azucarada" },
+    tecnico: { name: "Mi Amigo/a de Banco", icon: "🎒", power: "Compartir lápices y dar abrazos de gol" }
+  });
+
+  const neighborhoodPlayers = [
+    { name: "El Búho del Patio", icon: "🦉", power: "Visión periférica de 180° y tapadas nocturnas" },
+    { name: "La Vecina de las Tortas", icon: "🍰", power: "Gambetas dulces y potencia azucarada" },
+    { name: "El Profe de Reciclado", icon: "♻️", power: "Pases precisos de cartón y tapitas" },
+    { name: "La Tejedora del Barrio", icon: "🧶", power: "Defensa impenetrable tejiendo redes" },
+    { name: "Mi Amigo/a de Banco", icon: "🎒", power: "Compartir lápices y dar abrazos de gol" },
+    { name: "El Perro Callejero Manso", icon: "🐶", power: "Gambetas por la izquierda y mimos infinitos" },
+    { name: "La Directora del Alero", icon: "🎨", power: "Estrategias de amor y piñatas colosales" }
+  ];
+
+  // --- ARCADE GAME: ¡PENAL ALERO ⚽🥅 ---
+  const [ballPosition, setBallPosition] = useState<number>(50);
+  const [direction, setDirection] = useState<number>(1); // 1 = right, -1 = left
+  const [gameState, setGameState] = useState<'prep' | 'aiming' | 'result'>('prep');
+  const [gameResult, setGameResult] = useState<'goal' | 'saved' | null>(null);
+  const [gameScore, setGameScore] = useState({ goals: 0, saved: 0 });
+
+  // Move target pointer during aiming phase
+  useEffect(() => {
+    if (gameState !== 'aiming') return;
+    const interval = setInterval(() => {
+      setBallPosition(pos => {
+        let next = pos + direction * 5;
+        if (next >= 100) {
+          setDirection(-1);
+          return 100;
+        }
+        if (next <= 0) {
+          setDirection(1);
+          return 0;
+        }
+        return next;
+      });
+    }, 24);
+    return () => clearInterval(interval);
+  }, [gameState, direction]);
+
+  const handleKick = () => {
+    if (gameState !== 'aiming') return;
+    setGameState('result');
+
+    // Middle area (Goalkeeper block zone) is 30% to 70%.
+    // Landing < 30 or > 70 scores a phenomenal goal!
+    const isGoal = ballPosition < 30 || ballPosition > 70;
+
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      if (isGoal) {
+        setGameResult('goal');
+        setGameScore(prev => ({ ...prev, goals: prev.goals + 1 }));
+        
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.35);
+        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } else {
+        setGameResult('saved');
+        setGameScore(prev => ({ ...prev, saved: prev.saved + 1 }));
+        
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 0.25);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      }
+    } catch (e) {
+      if (isGoal) {
+        setGameResult('goal');
+        setGameScore(prev => ({ ...prev, goals: prev.goals + 1 }));
+      } else {
+        setGameResult('saved');
+        setGameScore(prev => ({ ...prev, saved: prev.saved + 1 }));
+      }
+    }
+  };
+
+  const resetGame = () => {
+    setBallPosition(50);
+    setGameState('prep');
+    setGameResult(null);
+  };
+
+  // --- AUDIO / TEXT TO SPEECH (VOZ MUNDIALISTA DE NUESTRO BARRIO) ---
   const [audioState, setAudioState] = useState<{
     isSpeaking: boolean;
     isPaused: boolean;
@@ -2560,11 +2664,11 @@ function Edition06() {
   });
 
   const textToRead = [
-    "¡Hola vecinas y vecinos! Hoy es un día de inmensa emoción. Nuestro adorado Alero Coronel Dorrego cumple oficialmente diez años de vida en el corazón de nuestra comunidad.",
-    "¡Hoy es el cumpleaños real! Diez años tejiendo risas, encuentros y abrazos en el barrio.",
-    "Pero presten mucha atención: como hoy no cae sábado, domingo, miércoles ni jueves, no se festeja hoy en el espacio. El cumpleaños se pasa directamente para el gran sábado veintisiete de junio.",
-    "Para el sábado veintisiete de junio, tendremos listas las piñatas colosales, las canastas de sorpresas y el periódico impreso en formato físico para entregar de mano en mano.",
-    "Aprovechá este cumpleaños real para dejar tu deseo en nuestro Buzón de Deseos digital. ¡Tus palabras quedarán guardadas para siempre en el baúl del diario! ¡Feliz cumpleaños Alero y nos encontramos el sábado veintisiete para festejar!"
+    "¡Hola vecinas y vecinos! Bienvenidos a la gloriosa Edición Mundial de El Dorrego.",
+    "Aunque en las fábricas textiles y de objetos no estén haciendo nada del mundial, porque se encuentran cosiendo a mil las mantitas abrigadas para el frío y diseñando las piñatas gigantes para el cumpleaños del Alero, ¡este diario de las infancias cree fervientemente que el potrero tiene que gritar gol!",
+    "En esta edición especial celeste y blanco te traemos un súper pizarrón táctico interactivo: ¡hacé click para armar tu Selección Ideal del Barrio con El Búho del Patio, la Vecina de las Tortas y tus amigos!",
+    "Además, desafía tus reflejos en el interactivo de Penales: ¡conviértete en goleador de Coronel Dorrego contra nuestro hábil guardameta el Búho!",
+    "Y no dejes de escribir tu Grito de Aliento en el Buzón de Nube. Qué tus palabras viajen y se guarden por siempre en nuestro baúl digital. ¡Abrazo gigante y vamos Argentina siempre adelante!"
   ];
 
   const speakChunk = (index: number) => {
@@ -2594,7 +2698,7 @@ function Edition06() {
     }
     utterance.lang = spanishVoice ? spanishVoice.lang : "es-AR";
     utterance.pitch = 1.05;
-    utterance.rate = 0.88;
+    utterance.rate = 0.9;
 
     utterance.onend = () => {
       setAudioState(prev => {
@@ -2682,15 +2786,15 @@ function Edition06() {
         const seed = [
           {
             id: 1,
-            author: "Vale",
-            text: "¡Que El Alero siga cobijando las risas de todos los niños por 100 años más! 🎈",
-            date: "2026-06-07T22:34:50.000Z"
+            author: "Mateo de la Esquina",
+            text: "¡Aguante el Alero y aguante Argentina! Que la copa de la alegría la ganen las infancias del barrio jugando juntas siempre. 🏆⚽",
+            date: "2026-06-10T12:00:00.000Z"
           },
           {
             id: 2,
-            author: "Héctor del Barrio",
-            text: "Felices 10 años al lugar donde aprendimos a tejer la trama comunitaria y a reír sin miedos. ✨",
-            date: "2026-06-06T18:20:00.000Z"
+            author: "La Vecina de las Tortas",
+            text: "¡Qué golazo de semanario escolar-comunitario! Que siga rodando la pelota del amor y la alegría en Santa Fe. ⚡",
+            date: "2026-06-09T18:30:00.000Z"
           }
         ];
         localStorage.setItem("el_dorrego_wishes", JSON.stringify(seed));
@@ -2704,13 +2808,13 @@ function Edition06() {
   const handleWishSubmit = async (e: any) => {
     e.preventDefault();
     if (!newWishText.trim()) {
-      setWishError("¡Por favor, escribí un deseo para El Alero!");
+      setWishError("¡Por favor, escribí un grito de aliento mundialista!");
       return;
     }
     setWishError(null);
     setIsSubmittingWish(true);
 
-    const authorVal = newWishAuthor.trim() ? newWishAuthor.trim() : "Vecino/a anónimo";
+    const authorVal = newWishAuthor.trim() ? newWishAuthor.trim() : "Hincha anónimo de Coronel Dorrego";
     const textVal = newWishText.trim();
     const dateVal = new Date().toISOString();
     const newWishObj = {
@@ -2759,9 +2863,9 @@ function Edition06() {
           wishesList = [
             {
               id: 1,
-              author: "Vale",
-              text: "¡Que El Alero siga cobijando las risas de todos los niños por 100 años más! 🎈",
-              date: "2026-06-07T22:34:50.000Z"
+              author: "Mateo de la Esquina",
+              text: "¡Aguante el Alero y aguante Argentina! Que la copa de la alegría la ganen las infancias del barrio jugando juntas siempre. 🏆⚽",
+              date: "2026-06-10T12:00:00.000Z"
             }
           ];
         }
@@ -2779,11 +2883,6 @@ function Edition06() {
   };
 
   useEffect(() => {
-    const celebrationBirthday = new Date("2026-06-27T00:00:00");
-    const now = new Date();
-    const diffCeleb = celebrationBirthday.getTime() - now.getTime();
-    setDaysLeftCeleb(Math.ceil(diffCeleb / (1000 * 60 * 60 * 24)));
-
     fetchWishes();
 
     return () => {
@@ -2794,22 +2893,22 @@ function Edition06() {
   }, []);
 
   const fantasticPresets = [
-    "¡HOY EL ALERO CUMPLE 10 AÑOS Y SE SIENTE EL AMOR EN CADA RINCÓN DEL BARRIO! ❤️",
-    "¡SÁBADO 27 DE JUNIO: DÍA DE PIÑATAS MÁGICAS Y ABRAZOS PRESENCIALES! 🎉",
-    "¡EL ALERO RECIBE DESEOS DE TODO EL PAÍS PARA SUS PRÓXIMOS 100 AÑOS!",
-    "¡NUESTRAS FÁBRICAS PREPARAN SORPRESITAS DE AZÚCAR Y PALABRAS FANTÁSTICAS!",
-    "¡EL DORREGO SE VISTE DE ARCOÍRIS CON LOS MEJORES COLORES DEL MUNDO!"
+    "¡FÁBRICAS DEL ALERO EN OTRA COSA, PERO EL DORREGO GRITA GOL MUNDIALISTA! 🏆",
+    "¡EL ALERO DE CORONEL DORREGO SE VISTE DE CELESTE Y BLANCO! 🇦🇷",
+    "¡LA ZURDA MÁGICA DE LOS PIBES Y PIBAS GANA LA GRAN COPA DE CORONEL DORREGO! ⚽",
+    "¡VAMOS, VAMOS ARGENTINA: EL GRITO DE ALIENTO DE NUESTROS CORAZONES!",
+    "¡EL AMOR POR LA CAMISETA Y LA PICARDÍA DEL POTRERO TIENE SU PROPIO DIARIO EN SANTA FE!"
   ];
 
   const doodles = [
-    { char: "🎈", label: "Globo alegre" },
-    { char: "🎂", label: "Torta de diez" },
-    { char: "🌸", label: "Flor silvestre" },
-    { char: "🦉", label: "Búho del patio" },
-    { char: "✨", label: "Chispas de magia" },
-    { char: "🎨", label: "Pintura fresca" },
-    { char: "🎁", label: "Cajita sorpresa" },
-    { char: "🍭", label: "Chupetín colorido" }
+    { char: "⚽", label: "Pelota de fútbol" },
+    { char: "🏆", label: "Copa dorada" },
+    { char: "🇦🇷", label: "Bandera de aliento" },
+    { char: "📣", label: "Megáfono de grito" },
+    { char: "✨", label: "Zapatilla mágica" },
+    { char: "🧤", label: "Atajada del buho" },
+    { char: "🥅", label: "Arco del Alero" },
+    { char: "🧉", label: "Mate de vestuario" }
   ];
 
   const handleCustomSubmit = (e: any) => {
@@ -2820,134 +2919,142 @@ function Edition06() {
     }
   };
 
+  const changePlayer = (position: string, player: typeof neighborhoodPlayers[0]) => {
+    setSelectedPlayers(prev => ({
+      ...prev,
+      [position]: player
+    }));
+    setSelectedPosition(null);
+  };
+
   return (
     <div className="text-black space-y-12">
-      {/* Top Info Bar - Spectrum / Rainbow Theme */}
-      <div className="flex justify-between items-end border-b-4 pb-4 mb-8" style={{ borderBottomColor: '#ec4899' }}>
-        <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-600">
-          <span className="text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black] bg-gradient-to-r from-rose-500 to-pink-600">VOLUMEN 06</span>
-          DIARIO EL DORREGO • ¡HOY ES EL CUMPLEAÑOS DE 10 AÑOS! • SANTA FE • 8 DE JUNIO DE 2026
+      {/* Top Info Bar - Sky Blue (Celeste) & Gold Theme */}
+      <div className="flex justify-between items-end border-b-4 pb-4 mb-8" style={{ borderBottomColor: '#38bdf8' }}>
+        <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-sky-400 via-yellow-500 to-sky-700">
+          <span className="text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black] bg-gradient-to-r from-sky-500 to-blue-600">VOLUMEN 06</span>
+          DIARIO EL DORREGO • EDICIÓN ESPECIAL MUNDIALISTA ⚽🏆 • SANTA FE • 10 DE JUNIO DE 2026
         </div>
-        <div className="text-right text-[10px] md:text-sm font-black uppercase text-pink-600">
+        <div className="text-right text-[10px] md:text-sm font-black uppercase text-sky-600">
           AÑO I • Nº 006<br />
-          EDICIÓN ESPECIALÍSIMA: ¡CUMPLEAÑOS DE EL ALERO!
+          LA PASIÓN CELESTE Y BLANCO EN EL BARRIO
         </div>
       </div>
 
-      {/* Spectacular Masthead with Rainbow Spectrum Borders */}
-      <header id="inicio-ed6" className="border-b-[12px] border-b-transparent bg-gradient-to-r from-red-500 via-yellow-400 via-emerald-400 via-cyan-400 via-indigo-500 to-pink-500 pb-1.5 mb-12 text-center relative rounded-b-xl shadow-[0_4px_15px_rgba(0,0,0,0.15)]">
+      {/* Spectacular Masthead with Sky Blue Borders */}
+      <header id="inicio-ed6" className="border-b-[12px] border-b-transparent bg-gradient-to-r from-sky-500 via-sky-300 via-yellow-400 via-sky-300 to-sky-500 pb-1.5 mb-12 text-center relative rounded-b-xl shadow-[0_4px_15px_rgba(0,0,0,0.15)]">
         <div className="bg-white py-10 px-4">
           <motion.div 
             initial={{ scale: 0, rotate: 15 }}
             animate={{ scale: 1, rotate: -8 }}
-            className="absolute -top-10 -right-2 bg-gradient-to-r from-yellow-300 via-pink-400 to-cyan-300 border-4 border-black p-4 rounded-xl font-black text-xs md:text-sm text-black shadow-[6px_6px_0px_black] z-20 animate-bounce"
+            className="absolute -top-10 -right-2 bg-gradient-to-r from-sky-400 via-yellow-300 to-sky-300 border-4 border-black p-4 rounded-xl font-black text-xs md:text-sm text-black shadow-[6px_6px_0px_black] z-20 animate-bounce"
           >
-            🎂 ¡HOY 10 AÑOS! 🎂
+            🏆 EL DORREGO MUNDIALISTÍSIMO ⚽
           </motion.div>
           
           <a href="#inicio-ed6" className="block hover:opacity-80 transition-opacity">
-            <h1 className="text-[12vw] md:text-[8.5rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-amber-500 via-teal-500 via-indigo-600 to-pink-600 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+            <h1 className="text-[12vw] md:text-[8.5rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-500 via-yellow-500 via-sky-500 to-blue-700 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
               EL DORREGO
             </h1>
           </a>
           
           <div className="relative inline-block px-4">
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 transform -rotate-1 skew-x-2 translate-y-1"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-500 via-yellow-400 to-sky-400 transform -rotate-1 skew-x-2 translate-y-1"></div>
             <div className="relative border-4 border-black py-3 px-8 md:px-16 text-lg md:text-4xl font-black tracking-[0.1em] bg-yellow-300 text-black translate-y-[-4px] shadow-[6px_6px_0px_black] uppercase leading-tight">
-              🌈 ¡Los mejores colores del universo! 🌈
+              ⚽ ¡La pasión más linda del potrero! ⚽
             </div>
           </div>
 
-          <div className="mt-8 text-sm md:text-lg font-black max-w-xl mx-auto uppercase tracking-wide bg-amber-100 border-2 border-black/20 p-2.5 rounded-lg">
-            "Hoy Lunes 8 de Junio soplamos las 10 velitas intangibles... ¡Pero lee abajo el anuncio especial!"
+          <div className="mt-8 text-sm md:text-lg font-black max-w-xl mx-auto uppercase tracking-wide bg-sky-100 border-2 border-black/20 p-2.5 rounded-lg">
+            "Las fábricas del Alero están concentradas en otros hermosos proyectos... ¡Pero la celeste y blanca se siente en el diario!"
           </div>
         </div>
       </header>
 
-      {/* CRUCIAL ANNOUNCEMENT SECTION: "HOY NO SE FESTEJA PRESENCIALMENTE" */}
-      <section id="sin-festejo-ed6" className="relative group">
-        <div className="absolute inset-0 bg-yellow-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-yellow-400"></div>
-        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] relative overflow-hidden rounded-2xl bg-gradient-to-tr from-amber-50/50 via-white to-pink-50/50">
+      {/* EDITORIAL COLUMN BLOCK: "¿Y LAS FÁBRICAS? / EL CONTRASTE DEL MUNDIAL" */}
+      <section id="mundial-ed6" className="relative group">
+        <div className="absolute inset-0 bg-sky-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-sky-400"></div>
+        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] relative overflow-hidden rounded-2xl bg-gradient-to-tr from-sky-50/50 via-white to-sky-100/50">
           
-          <div className="absolute -top-12 -left-12 w-40 h-40 bg-yellow-300/30 rounded-full blur-2xl pointer-events-none"></div>
-          <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-300/30 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute -top-12 -left-12 w-40 h-40 bg-sky-300/30 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-yellow-200/30 rounded-full blur-2xl pointer-events-none"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row gap-8 items-stretch">
             
-            {/* Big Alert Notice Box */}
-            <div className="w-full md:w-2/5 bg-gradient-to-br from-rose-500 to-amber-500 text-white p-6 border-4 border-black shadow-[6px_6px_0px_black] flex flex-col justify-between rounded-xl transform -rotate-1">
+            {/* Left: Big Editorial Warning Box */}
+            <div className="w-full md:w-2/5 bg-gradient-to-br from-sky-500 to-blue-600 text-white p-6 border-4 border-black shadow-[6px_6px_0px_black] flex flex-col justify-between rounded-xl transform -rotate-1">
               <div>
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-white text-rose-600 rounded-full p-2 border-2 border-black animate-ping w-8 h-8 flex items-center justify-center font-black text-xl">🚨</div>
-                  <h3 className="text-xl font-black uppercase tracking-tight text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">¡ATENCIÓN BARRIO!</h3>
+                  <div className="bg-white text-sky-600 rounded-full p-2 border-2 border-black animate-pulse w-8 h-8 flex items-center justify-center font-black text-xl">ℹ️</div>
+                  <h3 className="text-xl font-black uppercase tracking-tight text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">¿Y LAS FÁBRICAS?</h3>
                 </div>
-                <p className="text-2xl font-serif font-black uppercase italic leading-none mb-4 drop-shadow-[1px_1px_0px_rgba(0,0,0,0.3)]">
-                  HOY LUNES 8 DE JUNIO ES EL CUMPLE REAL...
+                <p className="text-2xl font-serif font-black uppercase italic leading-none mb-4 drop-shadow-[1px_1px_0px_rgba(0,0,0,0.3)] text-yellow-300">
+                  ¡EN LAS FÁBRICAS NO SE HACE NADA DEL MUNDIAL!
                 </p>
-                <div className="bg-black/25 p-3 rounded border border-white/20 mb-4">
-                  <p className="text-3xl font-black text-yellow-300 text-center leading-none uppercase tracking-tighter">
-                    ¡PERO HOY NO SE FESTEJA!
+                <div className="bg-black/25 p-3 rounded border border-white/20 mb-4 text-center">
+                  <p className="text-base font-black text-white leading-normal uppercase">
+                    ¡Ellos tejen y cosen abrigos, pero nosotros gritamos goles digitales!
                   </p>
                 </div>
-                <p className="text-xs font-medium leading-relaxed">
-                  Hoy es el día del calendario real en que nuestro Alero cumple sus primeros 10 años. Pero como hoy lunes no es sábado, domingo, miércoles ni jueves (los días de apertura y encuentro), no se festeja hoy en el espacio ¡y se pasa todo directamente para el sábado 27 de junio!
+                <p className="text-xs font-bold leading-relaxed opacity-90">
+                  Si entrás hoy a la Fábrica de Objetos o a la Fábrica Textil del Alero, no vas a ver botines ni camisetas. ¡Ellos están a mil terminando mantas de invierno para el barrio y preparando piñatas gigantes para el 10º aniversario del Alero! Por eso, nos encargamos nosotros: ¡El Dorrego refleja el Mundial de las infancias!
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-white/20 flex items-center justify-between">
-                <span className="text-[10px] font-mono tracking-widest uppercase font-black">EVENTO REPROGRAMADO</span>
-                <span className="bg-white text-black text-xs font-black px-2.5 py-1 rounded shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">SÁB. 27 JUNIO</span>
+                <span className="text-[9px] font-mono tracking-widest uppercase font-black">FÁBRICA FÍSICA INTACTA</span>
+                <span className="bg-yellow-300 text-black text-xs font-black px-2.5 py-1 rounded shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">EL DORREGO MUNDIAL</span>
               </div>
             </div>
 
-            {/* Explanation and warm community messaging */}
+            {/* Right: The World Cup Decree */}
             <div className="w-full md:w-3/5 space-y-6 flex flex-col justify-between">
               <div>
-                <span className="inline-block bg-teal-500 text-white px-3 py-1 font-black uppercase text-xs transform rotate-1 shadow-[3px_3px_0px_black] mb-3">
-                  📢 COMUNICADO DIRECTO DE LA FÁBRICA
+                <span className="inline-block bg-sky-500 text-white px-3 py-1 font-black uppercase text-xs transform rotate-1 shadow-[3px_3px_0px_black] mb-3">
+                  📢 COMUNICADO MUNDIALISTA DE LAS INFANCIAS
                 </span>
                 <h3 className="text-4xl font-black uppercase tracking-tighter text-black leading-none mb-4">
-                  ¿Por qué hoy no soplamos las velitas?
+                  ¡El Dorrego sí o sí tiene que brillar en celeste y blanco!
                 </h3>
                 <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                  Queridas vecinas y vecinos: como hoy lunes no es sábado, ni domingo, ni miércoles, ni tampoco jueves (los días clásicos de encuentro familiar y juego), no hacemos el cumpleaños de El Alero hoy real. ¡Por eso lo pasamos para el <strong className="text-pink-600 uppercase">Sábado 27 de Junio</strong>!
+                  Las cosas como son: en los talleres del Alero físico están sumergidos en hermosísimas misiones de tejido invernal y carpintería decorativa. ¡Y está genial! Pero los periodistas de <strong className="text-sky-600">El Dorrego</strong> sabemos que la pasión del barrio corre a mil por hora. 
                 </p>
-                <p className="text-sm font-bold text-gray-700 leading-relaxed mt-3">
-                  Ese sábado nos encontraremos todos con abrazos presenciales para celebrar los 10 años. Las fábricas están trabajando a toda máquina y ese día tendremos listo:
+                <p className="text-sm font-bold text-gray-700 leading-relaxed mt-2">
+                  Por eso, lanzamos este volumen mundialista interactivo. Porque el fútbol en el barrio es encuentro, es correr libres en los potreros, es reírse con los amigos y es armar equipos indestructibles basados en el afecto de Coronel Dorrego. ¡Acá abajo arranca el festival interactivo!
                 </p>
                 
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-xs font-black text-gray-800 uppercase">
-                  <li className="flex items-center gap-2 bg-pink-100/60 p-2 border-2 border-black/10 rounded">
-                    🎈 Piñatas gigantes de colores
-                  </li>
-                  <li className="flex items-center gap-2 bg-yellow-100/60 p-2 border-2 border-black/10 rounded">
-                    📦 Cajitas sorpresa artesanales
-                  </li>
-                  <li className="flex items-center gap-2 bg-cyan-100/60 p-2 border-2 border-black/10 rounded">
-                    📰 Periódico escolar impreso real
-                  </li>
-                  <li className="flex items-center gap-2 bg-purple-100/60 p-2 border-2 border-black/10 rounded">
-                    🎶 Cumbia y torta comunitaria
-                  </li>
-                </ul>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-xs font-black text-sky-950 uppercase">
+                  <div className="flex items-center gap-2 bg-sky-100 p-2 border-2 border-black/10 rounded">
+                    ⚽ Mi Selección del Barrio Interactiva
+                  </div>
+                  <div className="flex items-center gap-2 bg-yellow-100 p-2 border-2 border-black/10 rounded">
+                    🥅 Juego arcade interactivo "Penal Alero"
+                  </div>
+                  <div className="flex items-center gap-2 bg-cyan-100 p-2 border-2 border-black/10 rounded">
+                    🎙️ Audio-vecino con aliento de potrero
+                  </div>
+                  <div className="flex items-center gap-2 bg-blue-100 p-2 border-2 border-black/10 rounded">
+                    📢 Gritos de aliento guardados en nube
+                  </div>
+                </div>
               </div>
 
               {/* AUDIOLIBRO / LECTURA COMPARTIDA */}
-              <div className="bg-amber-50 border-4 border-black p-4 shadow-[4px_4px_0px_black] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="bg-sky-50 border-4 border-black p-4 shadow-[4px_4px_0px_black] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className={`bg-amber-200 border-2 border-black p-2 rounded-full ${audioState.isSpeaking && !audioState.isPaused ? 'animate-bounce' : ''}`}>
-                    <AudioLines className="w-5 h-5 text-amber-900" />
+                  <div className={`bg-sky-200 border-2 border-black p-2 rounded-full ${audioState.isSpeaking && !audioState.isPaused ? 'animate-bounce' : ''}`}>
+                    <AudioLines className="w-5 h-5 text-sky-900" />
                   </div>
-                  <div className="text-left">
-                    <p className="text-[11px] font-black uppercase text-amber-900 flex items-center gap-2">
-                      <span>📻 AUDIO-LECTURA POR VECINA/O</span>
+                  <div className="text-left font-sans">
+                    <p className="text-[11px] font-black uppercase text-sky-900 flex items-center gap-2">
+                      <span>📻 AUDIO-LECTURA REBELDE (MUNDIALISTA)</span>
                       {audioState.isSpeaking && !audioState.isPaused && (
                         <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
                       )}
                     </p>
                     <p className="text-[11px] font-bold text-gray-800 leading-tight">
                       {audioState.isSpeaking 
-                        ? (audioState.isPaused ? "Lectura pausada..." : "Reproduciendo audio del Volumen 6...") 
-                        : "¡Escuchá este anuncio especial con voz de El Alero!"
+                        ? (audioState.isPaused ? "Lectura mundialista en pausa..." : "Gritando goles del volumen 6 de El Dorrego...") 
+                        : "¡Sintonizá y escuchá a nuestra vecina narradora!"
                       }
                     </p>
                   </div>
@@ -2955,7 +3062,7 @@ function Edition06() {
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                   <button
                     onClick={handlePlaySpeech}
-                    className="flex-1 sm:flex-initial bg-amber-400 hover:bg-amber-300 border-2 border-black px-3 py-1.5 text-xs font-black uppercase flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                    className="flex-1 sm:flex-initial bg-sky-400 hover:bg-sky-300 border-2 border-black px-3 py-1.5 text-xs font-black uppercase flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
                   >
                     {audioState.isSpeaking && !audioState.isPaused ? (
                       <>
@@ -2986,22 +3093,322 @@ function Edition06() {
         </div>
       </section>
 
-      {/* FUN HEADLINE GENERATOR WITH SPECTRUM COLOR BLOCKS */}
-      <section className="bg-gradient-to-r from-cyan-400 via-pink-400 to-yellow-300 border-4 border-black p-1 rounded-2xl shadow-[10px_10px_0px_black]">
+      {/* SQUAD BUILDER WIDGET: "MI SELECCIÓN DEL BARRIO" */}
+      <section id="seleccion-ed6" className="relative group">
+        <div className="absolute inset-0 bg-yellow-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-yellow-400"></div>
+        
+        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] rounded-2xl space-y-8">
+          
+          <div className="text-center md:text-left border-b-4 border-black pb-4">
+            <span className="bg-yellow-400 border-2 border-black text-black text-xs font-black px-2.5 py-1 uppercase rounded tracking-wider shadow-[2px_2px_0px_black] inline-block mb-3">
+              📋 PIZARRÓN TÁCTICO INTERACTIVO
+            </span>
+            <h3 className="text-3xl md:text-4xl font-black uppercase leading-none">
+              ¡ARMÁ LA SELECCIÓN INFANTIL-COMUNITARIA!
+            </h3>
+            <p className="text-xs font-black text-gray-500 mt-2">
+              Hacé click en cada posición de la cancha para designar quién cuidará de la felicidad y el juego en nuestro potrero.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* The Football Pitch representation (7 cols) */}
+            <div className="lg:col-span-7 bg-[#2e7d32] border-4 border-black p-4 relative rounded-2xl shadow-[8px_8px_0px_black] overflow-hidden">
+              <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+              
+              {/* Pitch lines */}
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t-2 border-dashed border-white pointer-events-none"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 border-2 border-white rounded-full pointer-events-none"></div>
+              <div className="absolute top-0 left-1/4 right-1/4 h-16 border-b-2 border-x-2 border-white pointer-events-none"></div>
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-16 border-t-2 border-x-2 border-white pointer-events-none"></div>
+
+              {/* Position Markers */}
+              <div className="relative z-10 flex flex-col justify-between h-[450px] py-4">
+                
+                {/* Director Técnico card */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedPosition('tecnico')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedPosition === 'tecnico' ? 'bg-yellow-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-black text-white hover:bg-gray-800'}`}
+                  >
+                    👵 DT: {selectedPlayers.tecnico.name} {selectedPlayers.tecnico.icon}
+                  </button>
+                </div>
+
+                {/* Delantero star */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedPosition('delantero')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedPosition === 'delantero' ? 'bg-yellow-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    ⚡ Delantero/a: {selectedPlayers.delantero.name} {selectedPlayers.delantero.icon}
+                  </button>
+                </div>
+
+                {/* Mediocampista */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedPosition('mediocampista')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedPosition === 'mediocampista' ? 'bg-yellow-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🧠 Mediocentro: {selectedPlayers.mediocampista.name} {selectedPlayers.mediocampista.icon}
+                  </button>
+                </div>
+
+                {/* Defensor */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedPosition('defensor')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedPosition === 'defensor' ? 'bg-yellow-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🛡️ Defensor/a: {selectedPlayers.defensor.name} {selectedPlayers.defensor.icon}
+                  </button>
+                </div>
+
+                {/* Arquero/a */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedPosition('arquero')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedPosition === 'arquero' ? 'bg-yellow-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🧤 Arquero/a: {selectedPlayers.arquero.name} {selectedPlayers.arquero.icon}
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Selection & Detail controls (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              
+              {selectedPosition ? (
+                <div className="bg-yellow-50 border-4 border-black p-4 rounded-xl shadow-[4px_4px_0px_black] space-y-3">
+                  <h4 className="text-sm font-black uppercase text-pink-600 flex items-center gap-1">
+                    <span>🔄 Seleccioná quién juega en la posición:</span> <span className="underline">{selectedPosition}</span>
+                  </h4>
+                  <div className="space-y-1 max-h-[260px] overflow-y-auto">
+                    {neighborhoodPlayers.map((player, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => changePlayer(selectedPosition, player)}
+                        className="w-full text-left font-black text-xs p-2 border-2 border-black/10 hover:border-black rounded-lg bg-white hover:bg-yellow-100 flex items-center justify-between transition-all"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-xl">{player.icon}</span>
+                          <span>{player.name}</span>
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-bold max-w-[150px] truncate">
+                          {player.power}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setSelectedPosition(null)}
+                    className="w-full bg-black text-white hover:bg-gray-800 text-xs font-black py-2 uppercase border-2 border-black shadow-[2px_2px_0px_black]"
+                  >
+                    Cancelar Selección
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-sky-50 border-4 border-black p-5 rounded-xl shadow-[4px_4px_0px_black] space-y-4">
+                  <h4 className="text-lg font-black uppercase text-sky-950 flex items-center gap-2">
+                    🎖️ PLANTEO TÁCTICO SELECCIONADO
+                  </h4>
+                  <p className="text-xs font-bold text-gray-600 leading-normal">
+                    Este equipo representa la esencia viva de Coronel Dorrego. Pasá el cursor o clickeá una posición en el pizarrón verde para cambiar quien juega allí. ¡Unidos somos invencibles!
+                  </p>
+                  
+                  <div className="border-t border-black/15 pt-3 space-y-2 text-xs">
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-sky-800">🧤 ARQUERO/A:</span>
+                      <div className="text-right">
+                        <p className="font-black text-gray-900">{selectedPlayers.arquero.name} {selectedPlayers.arquero.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedPlayers.arquero.power}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-sky-800">🛡️ DEFENSA:</span>
+                      <div className="text-right">
+                        <p className="font-black text-gray-900">{selectedPlayers.defensor.name} {selectedPlayers.defensor.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedPlayers.defensor.power}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-sky-800">🧠 MEDIOCENTRO:</span>
+                      <div className="text-right">
+                        <p className="font-black text-gray-900">{selectedPlayers.mediocampista.name} {selectedPlayers.mediocampista.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedPlayers.mediocampista.power}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-sky-800">⚡ DELANTERO/A:</span>
+                      <div className="text-right">
+                        <p className="font-black text-gray-900">{selectedPlayers.delantero.name} {selectedPlayers.delantero.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedPlayers.delantero.power}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="font-black text-yellow-700">📋 DIRECTOR/A TÉCNICO/A:</span>
+                      <div className="text-right">
+                        <p className="font-black text-gray-900">{selectedPlayers.tecnico.name} {selectedPlayers.tecnico.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedPlayers.tecnico.power}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Quote Sticker */}
+              <div className="bg-gradient-to-tr from-sky-400 to-indigo-500 text-white p-4 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl transform rotate-1">
+                <span className="text-[9px] font-mono font-black uppercase tracking-widest block text-yellow-300">POTRERO SENTIMIENTO</span>
+                <p className="font-black text-xs leading-normal mt-1 italic">
+                  "El potrero del Alero tiene una mística de hierro: no se rinde, teje mantas, arma de cartón los trofeos secundarios, y festeja los domingos bajo el sol santafesino de Dorrego."
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* MINI ARCADE PENAL GAME: "¡PENAL ALERO!" */}
+      <section id="penal-ed6" className="relative group">
+        <div className="absolute inset-0 bg-red-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-red-400"></div>
+        
+        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] rounded-2xl space-y-6">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-4 border-black pb-4">
+            <div>
+              <span className="bg-red-500 border-2 border-black text-white text-xs font-black px-2.5 py-1 uppercase rounded tracking-wider shadow-[2px_2px_0px_black] inline-block mb-1">
+                🎮 MINI-JUEGO INTERACTIVO
+              </span>
+              <h3 className="text-3xl md:text-4xl font-black uppercase leading-tight text-red-950">
+                🥅 ¡PENAL ALERO MUNDIALISTA! 🥅
+              </h3>
+            </div>
+            <div className="bg-gray-100 border-2 border-black p-2 font-mono text-xs font-black rounded-lg shadow-[2px_2px_0px_black]">
+              ⚽ MI TABLERO: <span className="text-emerald-600">GOLES: {gameScore.goals}</span> | <span className="text-rose-600">ATAJADAS: {gameScore.saved}</span>
+            </div>
+          </div>
+
+          <p className="text-xs font-black text-gray-600">
+            Hacé click en <strong className="text-red-500">EMPEZAR A APUNTAR</strong> para ver el indicador oscilar. Luego calculá tu potencia y pateá hacia los bordes alejados: ¡El Búho del Patio defenderá el arco quedándose en el centro!
+          </p>
+
+          <div className="border-4 border-black bg-gradient-to-b from-[#1b5e20] to-[#2e7d32] p-6 relative rounded-xl h-72 flex flex-col justify-between overflow-hidden">
+            <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+
+            {/* Soccer Goalpost */}
+            <div className="w-4/5 mx-auto h-40 border-t-8 border-x-8 border-white bg-white/5 relative flex justify-center items-end rounded-t-lg shadow-inner">
+              {/* Goal Net details */}
+              <div className="absolute inset-0 opacity-10 bg-[linear-gradient(45deg,#fff_1px,transparent_1px),linear-gradient(-45deg,#fff_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none"></div>
+
+              {/* Goalkeeper (The Owl) */}
+              <motion.div 
+                animate={gameState === 'aiming' ? { x: [-30, 30, -30] } : { x: 0 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute bottom-2 font-black text-5xl z-10 select-none cursor-help"
+                title="El Búho Custodio"
+              >
+                🦉
+              </motion.div>
+
+              {/* Goal keeper glove helpers */}
+              <div className="absolute bottom-2 left-[20%] text-2xl animate-pulse opacity-50 select-none">🥅</div>
+              <div className="absolute bottom-2 right-[20%] text-2xl animate-pulse opacity-50 select-none">🥅</div>
+
+              {/* Visual Results Overlay */}
+              {gameResult === 'goal' && (
+                <div className="absolute inset-0 bg-emerald-600/90 z-20 flex flex-col items-center justify-center text-white border-2 border-black rounded-t-lg font-black uppercase text-3xl animate-bounce tracking-widest text-shadow-md">
+                  <span>⚽ ¡GOOOOOL! ⚽</span>
+                  <span className="text-xs mt-2 text-yellow-300">¡BÚHO DESTRONADO POR UN GOLAZO!</span>
+                </div>
+              )}
+              {gameResult === 'saved' && (
+                <div className="absolute inset-0 bg-red-600/90 z-20 flex flex-col items-center justify-center text-white border-2 border-black rounded-t-lg font-black uppercase text-3xl animate-pulse tracking-wide">
+                  <span>👐 ¡ATAJADA! 👐</span>
+                  <span className="text-xs mt-2 text-white/90">¡EL BÚHO ATUVO TU TIRO AL MEDIO!</span>
+                </div>
+              )}
+            </div>
+
+            {/* Control Dashboard / Aiming Bar */}
+            <div className="relative z-10 w-full bg-black/40 border border-white/10 p-3 rounded-lg space-y-2.5">
+              
+              {/* Slider gauge */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[9px] font-mono text-white/80 uppercase font-black tracking-wider">
+                  <span>IZQUIERDA (GOL) 🎯</span>
+                  <span className="text-yellow-300">AL CENTRO (ATAJA EL BÚHO) 🦉</span>
+                  <span>DERECHA (GOL) 🎯</span>
+                </div>
+                <div className="w-full bg-white/20 h-4 rounded-full border border-black overflow-hidden relative">
+                  {/* Highlighted Aim Pointer */}
+                  <div 
+                    className="absolute top-0 bottom-0 w-4 bg-yellow-400 border-x border-black transition-all duration-[24ms]" 
+                    style={{ left: `${ballPosition}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Control Buttons list */}
+              <div className="flex justify-center gap-4">
+                {gameState === 'prep' && (
+                  <button
+                    onClick={() => setGameState('aiming')}
+                    className="bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs px-6 py-2 border-2 border-black shadow-[2px_2px_0px_black] active:shadow-none active:translate-y-0.5"
+                  >
+                    🚀 EMPEZAR A APUNTAR
+                  </button>
+                )}
+
+                {gameState === 'aiming' && (
+                  <button
+                    onClick={handleKick}
+                    className="bg-red-500 hover:bg-red-400 text-white font-black text-xs px-8 py-2 border-2 border-black shadow-[2px_2px_0px_black] active:shadow-none active:translate-y-0.5 animate-pulse"
+                  >
+                    ⚽ ¡PATEAR BALÓN!
+                  </button>
+                )}
+
+                {gameState === 'result' && (
+                  <button
+                    onClick={resetGame}
+                    className="bg-sky-400 hover:bg-sky-300 text-black font-black text-xs px-6 py-2 border-2 border-black shadow-[2px_2px_0px_black] active:shadow-none active:translate-y-0.5"
+                  >
+                    ⚽ OTRO TIRO (RESET)
+                  </button>
+                )}
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* FUN HEADLINE GENERATOR WITH CELESTE COLOR BLOCKS */}
+      <section className="bg-gradient-to-r from-sky-400 via-sky-300 to-yellow-300 border-4 border-black p-1 rounded-2xl shadow-[10px_10px_0px_black]">
         <div className="bg-white p-6 md:p-8 rounded-xl space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-4 border-black pb-4">
             <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter flex items-center gap-2">
-              <Sparkles className="w-7 h-7 text-pink-600 animate-spin" /> TITULAR DE CUMPLEAÑOS COMUNITARIO
+              <Sparkles className="w-7 h-7 text-sky-600 animate-pulse" /> PLANILLA DE TITULARES MUNDIALISTAS
             </h3>
             <p className="text-[10px] font-mono font-black text-gray-500 bg-gray-100 px-3 py-1 border-2 border-black rounded uppercase">
-              ¡Armá tu propia portada!
+              ¡Armá tu titular en celeste y blanco!
             </p>
           </div>
 
           {/* Selected Headline Box */}
-          <div className="bg-yellow-50 border-4 border-black p-6 relative shadow-[4px_4px_0px_black] text-center overflow-hidden rounded-xl">
+          <div className="bg-sky-50 border-4 border-black p-6 relative shadow-[4px_4px_0px_black] text-center overflow-hidden rounded-xl">
             <div className="absolute top-0 left-0 bg-black text-white font-black text-[9px] px-2.5 py-0.5 uppercase">
-              PORTADA DEL BARRIO
+              PORTADA DE PORTAVOZ INFANTIL
             </div>
             
             <motion.p 
@@ -3017,17 +3424,17 @@ function Edition06() {
           {/* Headline Selectors & Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             <div>
-              <p className="text-xs font-black uppercase mb-3 flex items-center gap-1.5 text-pink-600">
-                <span>✨ Elegí una frase fantástica de cumpleaños:</span>
+              <p className="text-xs font-black uppercase mb-3 flex items-center gap-1.5 text-sky-600">
+                <span>✨ Elegí una frase fantástica mundialista:</span>
               </p>
               <div className="space-y-1.5 max-h-[180px] overflow-y-auto border-2 border-black/10 p-2.5 bg-gray-50/50 rounded-lg">
                 {fantasticPresets.map((preset, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedHeadline(preset)}
-                    className="w-full text-left text-xs font-bold p-2 hover:bg-indigo-50 border border-transparent hover:border-black/10 rounded transition-all leading-tight uppercase flex items-start gap-2 text-gray-800"
+                    className="w-full text-left text-xs font-bold p-2 hover:bg-sky-50 border border-transparent hover:border-black/10 rounded transition-all leading-tight uppercase flex items-start gap-2 text-gray-800"
                   >
-                    <span className="text-pink-500">•</span>
+                    <span className="text-sky-500">•</span>
                     <span>{preset}</span>
                   </button>
                 ))}
@@ -3036,21 +3443,21 @@ function Edition06() {
 
             <div className="flex flex-col justify-between gap-4">
               <form onSubmit={handleCustomSubmit} className="space-y-2">
-                <label className="block text-xs font-black uppercase text-cyan-600">
-                  ✍️ O redactá tu propio titular para el diario político:
+                <label className="block text-xs font-black uppercase text-sky-600">
+                  ✍️ O redactá tu propio titular mundialista:
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={customHeadline}
                     onChange={(e) => setCustomHeadline(e.target.value)}
-                    placeholder="Escríbí acá tu gran titular de cumpleaños..."
+                    placeholder="Ej. ¡Vamos Argentina de Coronel Dorrego!..."
                     className="flex-1 border-2 border-black p-2 text-xs font-bold focus:outline-none focus:bg-yellow-50 uppercase rounded shadow-[2px_2px_0px_black]"
                     maxLength={100}
                   />
                   <button
                     type="submit"
-                    className="bg-cyan-400 hover:bg-cyan-300 border-2 border-black px-4 py-2 text-xs font-black uppercase shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none rounded"
+                    className="bg-sky-400 hover:bg-sky-300 border-2 border-black px-4 py-2 text-xs font-black uppercase shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none rounded"
                   >
                     Publicar
                   </button>
@@ -3059,14 +3466,14 @@ function Edition06() {
 
               <div>
                 <p className="text-xs font-black uppercase text-emerald-600 mb-2">
-                  🎨 Adornar con un símbolo festivo:
+                  🎨 Adornar con un símbolo deportivo:
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {doodles.map((d, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedDoodle(d.char)}
-                      className={`w-10 h-10 border-2 border-black flex items-center justify-center text-lg rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.15)] hover:shadow-[3px_3px_0px_black] transition-all hover:-translate-y-0.5 ${selectedDoodle === d.char ? 'bg-gradient-to-br from-yellow-300 to-amber-400 border-4 scale-105' : 'bg-white hover:bg-gray-50'}`}
+                      className={`w-10 h-10 border-2 border-black flex items-center justify-center text-lg rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.15)] hover:shadow-[3px_3px_0px_black] transition-all hover:-translate-y-0.5 ${selectedDoodle === d.char ? 'bg-gradient-to-br from-sky-200 to-sky-400 border-4 scale-105' : 'bg-white hover:bg-gray-50'}`}
                       title={d.label}
                     >
                       {d.char}
@@ -3081,7 +3488,7 @@ function Edition06() {
       </section>
 
       {/* REAL-TIME WISHES BOX IN SPECTACULAR COLORS */}
-      <section id="deseos-ed6" className="relative group">
+      <section id="aliento-ed6" className="relative group">
         <div className="absolute inset-0 bg-cyan-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-cyan-400"></div>
         <div className="bg-white border-[8px] border-black p-6 md:p-12 shadow-[15px_15px_0px_black] relative overflow-hidden rounded-2xl">
           
@@ -3089,21 +3496,21 @@ function Edition06() {
             
             {/* Input Form Column (2/5) */}
             <div className="lg:col-span-2 space-y-6">
-              <span className="inline-block bg-pink-500 text-white px-3 py-1 font-black uppercase text-xs transform -rotate-1 shadow-[3px_3px_0px_black] mb-2 font-mono">
-                💝 COMPARTÍ TU DESEO DE CUMPLE
+              <span className="inline-block bg-sky-500 text-white px-3 py-1 font-black uppercase text-xs transform -rotate-1 shadow-[3px_3px_0px_black] mb-2 font-mono">
+                💝 COMPARTÍ TU GRITO DE ALIENTO
               </span>
               
               <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
-                EL ALMACÉN DE DESEOS DE EL ALERO
+                EL ALMACÉN DE ALIENTO
               </h2>
               
               <p className="text-xs font-bold text-gray-700 leading-relaxed bg-cyan-50 border-2 border-black/10 p-3 rounded-lg">
-                ¿Qué le deseás a El Alero por sus 10 años? Escribí tus felicitaciones, anécdotas, risas o sueños para el futuro del espacio comunitario. ¡Se guardará para siempre en el baúl del diario!
+                ¿Qué mensaje de aliento le enviás a la Selección de las Infancias de nuestro Alero? ¡Escribí felicitaciones, gritos de gol comunitario o abrazos para tus vecinos! Se guardará para siempre en nuestro baúl conectado a base de datos.
               </p>
 
               <form onSubmit={handleWishSubmit} className="space-y-4 bg-gray-50 p-6 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl relative">
                 <div className="space-y-1.5">
-                  <label htmlFor="wish-author-input" className="block text-xs font-black uppercase text-teal-700 flex items-center gap-1">
+                  <label htmlFor="wish-author-input" className="block text-xs font-black uppercase text-sky-700 flex items-center gap-1">
                     👤 ¿Cómo te llamás? (o vecino/a):
                   </label>
                   <input
@@ -3111,21 +3518,21 @@ function Edition06() {
                     type="text"
                     value={newWishAuthor}
                     onChange={(e) => setNewWishAuthor(e.target.value)}
-                    placeholder="Ej. Emanuel, Vecina de Coronel Dorrego, Vale..."
+                    placeholder="Ej. Mateo, Vecino de Dorrego, Vale..."
                     className="w-full border-2 border-black p-2.5 text-xs font-bold focus:outline-none focus:bg-yellow-50 uppercase rounded-md shadow-[2px_2px_0px_rgba(0,0,0,0.1)]"
                     maxLength={40}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="wish-text-input" className="block text-xs font-black uppercase text-teal-700">
-                    ✍️ Tu deseo mágico para El Alero:
+                  <label htmlFor="wish-text-input" className="block text-xs font-black uppercase text-sky-700">
+                    ✍️ Tu grito de aliento para el diario:
                   </label>
                   <textarea
                     id="wish-text-input"
                     value={newWishText}
                     onChange={(e) => setNewWishText(e.target.value)}
-                    placeholder="Escribí tu mensaje de felicitaciones aquí..."
+                    placeholder="¡Mete un golazo escribiendo tu mensaje de pasión aquí!..."
                     className="w-full border-2 border-black p-2.5 text-xs font-bold focus:outline-none focus:bg-yellow-50 h-28 resize-none rounded-md shadow-[2px_2px_0px_rgba(0,0,0,0.1)]"
                     maxLength={200}
                   />
@@ -3143,14 +3550,14 @@ function Edition06() {
                 <button
                   type="submit"
                   disabled={isSubmittingWish}
-                  className="w-full bg-black hover:bg-gray-800 text-white border-4 border-black py-3 text-xs font-black uppercase transition-all shadow-[4px_4px_0px_#ec4899] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 rounded-md"
+                  className="w-full bg-black hover:bg-gray-800 text-white border-4 border-black py-3 text-xs font-black uppercase transition-all shadow-[4px_4px_0px_#38bdf8] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 rounded-md animate-pulse"
                 >
-                  <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
-                  <span>{isSubmittingWish ? "Guardando..." : "¡Mandar Deseo al Almacén!"}</span>
+                  <Sparkles className="w-4 h-4 text-yellow-300 animate-spin" />
+                  <span>{isSubmittingWish ? "Guardando..." : "¡Mandar Aliento al Almacén!"}</span>
                 </button>
 
                 <p className="text-[10px] font-bold text-gray-500 leading-tight border-t border-black/10 pt-3">
-                  💡 Este buzón guarda los deseos directamente en el servidor. Tu mensaje permanecerá visible para todas las personas que entren, sin borrarse al actualizar.
+                  💡 Este baúl de deseos almacena los datos de forma durable. Tu grito de gol vivirá en la nube para siempre, visible para todos.
                 </p>
               </form>
             </div>
@@ -3158,8 +3565,8 @@ function Edition06() {
             {/* List Output Column (3/5) */}
             <div className="lg:col-span-3 space-y-6">
               <div className="flex border-b-4 border-black pb-2 items-center justify-between text-yellow-500">
-                <span className="text-sm font-black uppercase tracking-tight text-cyan-600 flex items-center gap-1.5">
-                  ✨ Deseos Recibidos ({wishes.length})
+                <span className="text-sm font-black uppercase tracking-tight text-sky-600 flex items-center gap-1.5">
+                  ✨ GRITOS RECIBIDOS EN LA NUBE ({wishes.length})
                 </span>
                 <span className="text-xs font-bold text-gray-400 font-mono">
                   HISTORIAL EN NUBE
@@ -3168,21 +3575,20 @@ function Edition06() {
 
               <div className="max-h-[580px] overflow-y-auto pr-2 space-y-4">
                 {wishes.length === 0 ? (
-                  <div className="border-4 border-dashed border-black/20 p-8 text-center uppercase font-black text-gray-400 bg-gray-50/50 rounded-xl">
-                    Cargando deseos del baúl... ¡Sé el primero en dejar tu huella en los 10 años hoy lunes!
+                  <div className="border-4 border-dashed border-black/20 p-8 text-center uppercase font-black text-gray-400 bg-gray-50/50 rounded-xl animate-pulse">
+                    Conectando con el almacén celestial... ¡Escribí el primer grito de aliento!
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <AnimatePresence>
                       {wishes.map((wish, idx) => {
-                        // Rainbow sticker color presets to reflect "the best colors in the world"
+                        // Celeste / White / Gold sticker colour schemes (Mundial colors!)
                         const stickerColors = [
+                          "bg-sky-100 border-sky-300 shadow-sky-200",
+                          "bg-neutral-50 border-gray-300 shadow-gray-200",
                           "bg-yellow-100 border-yellow-300 shadow-yellow-200",
-                          "bg-pink-100 border-pink-300 shadow-pink-200",
-                          "bg-cyan-100 border-cyan-300 shadow-cyan-200",
-                          "bg-green-100 border-green-300 shadow-green-200",
-                          "bg-purple-100 border-purple-300 shadow-purple-200",
-                          "bg-amber-100 border-amber-300 shadow-amber-200"
+                          "bg-blue-100 border-blue-200 shadow-blue-200",
+                          "bg-cyan-100 border-cyan-300 shadow-cyan-200"
                         ];
                         const stickerColor = stickerColors[idx % stickerColors.length];
                         const rotations = ["rotate-0", "rotate-1", "-rotate-1", "rotate-2", "-rotate-2"];
@@ -3197,11 +3603,11 @@ function Edition06() {
                             transition={{ duration: 0.3 }}
                             className={`p-4 border-2 border-black rounded-lg ${stickerColor} ${rotate} flex flex-col justify-between min-h-[120px] shadow-[4px_4px_0px_rgba(0,0,0,0.15)] hover:shadow-[6px_6px_0px_black] hover:-translate-y-1 transition-all`}
                           >
-                            <p className="text-xs font-bold leading-relaxed italic text-gray-900">
+                            <p className="text-xs font-bold leading-relaxed italic text-gray-950">
                               "{wish.text}"
                             </p>
                             <div className="mt-2 pt-2 border-t border-black/10 flex justify-between items-center text-[10px] font-black uppercase">
-                              <span className="truncate text-teal-800">👤 {wish.author}</span>
+                              <span className="truncate text-sky-800">👤 {wish.author}</span>
                               <span className="opacity-60 text-[8px] text-gray-500 font-mono">
                                 {new Date(wish.date).toLocaleDateString("es-AR", {
                                   day: "numeric",
@@ -3223,16 +3629,20 @@ function Edition06() {
         </div>
       </section>
 
-      {/* LATEST ACTION REPORTS FROM THE CREATIVE WORKSHOPS */}
-      <section className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-4 border-black p-6 md:p-8 shadow-[10px_10px_0px_black] rotate-[-0.5deg] rounded-2xl">
-        <h2 className="text-3xl font-black mb-4 uppercase flex items-center gap-2 justify-center md:justify-start drop-shadow-[2px_2px_0px_rgba(0,0,0,0.4)]">
-          🎁 LAS FÁBRICAS TRABAJAN AL 100% PARA EL SÁBADO 27
+      {/* LATEST ACTION REPORTS FROM THE CREATIVE WORKSHOPS (Contrasted with the World Cup!) */}
+      <section className="bg-gradient-to-r from-sky-500 to-indigo-600 text-white border-4 border-black p-6 md:p-8 shadow-[10px_10px_0px_black] rotate-[-0.5deg] rounded-2xl">
+        <h2 className="text-3xl font-black mb-4 uppercase flex items-center gap-2 justify-center md:justify-start drop-shadow-[2px_2px_0px_rgba(0,0,0,0.4)] text-yellow-300">
+          🎁 MIENTRAS TANTO, NUESTRAS 3 FÁBRICAS SIGUEN AL 100%
         </h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-black mt-6">
+        <p className="text-xs font-bold text-sky-100 max-w-2xl mb-6">
+          Ellos no están fabricando camisetas de Lionel Messi, ¡pero están preparando cosas gloriosas del Alero físico para todos nosotros!
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-black">
           <div className="bg-white p-5 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl flex flex-col justify-between">
             <div>
-              <span className="text-[9px] bg-cyan-500 text-white px-2 py-0.5 rounded uppercase font-black">Fábrica de Objetos</span>
+              <span className="text-[9px] bg-sky-500 text-white px-2 py-0.5 rounded uppercase font-black">Fábrica de Objetos</span>
               <h4 className="text-lg font-black uppercase mt-2 text-indigo-950">¡Las piñatas gigantes!</h4>
               <p className="text-xs font-bold text-gray-600 mt-2 leading-relaxed">
                 El equipo de artesanos del Alero colocó las estructuras de alambre y cartón para 5 piñatas monumentales. Esperan que soporten más de 10 kilos de sorpresas. ¡Listas para colgar el sábado 27 de junio!
@@ -3267,17 +3677,17 @@ function Edition06() {
 
       {/* Stickers / Footer area */}
       <div className="flex flex-wrap justify-center gap-6 py-8">
-        <div className="bg-rose-500 text-white font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-12 hover:rotate-0 transition-transform cursor-pointer">
-          SÁBADO 27 DE JUNIO: LA FIESTA 🎉
+        <div className="bg-sky-500 text-white border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform rotate-12 hover:rotate-0 transition-transform cursor-pointer">
+          ¡DORREGO MUNDIALISTA! 🇦🇷
         </div>
-        <div className="bg-yellow-400 text-black font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform -rotate-6 hover:rotate-0 transition-transform cursor-pointer font-mono">
-          8 DE JUNIO REAL 🎂
+        <div className="bg-yellow-400 text-black border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform -rotate-6 hover:rotate-0 transition-transform cursor-pointer font-mono">
+          EL ALERO PASIÓN ⚽
         </div>
-        <div className="bg-cyan-400 text-black font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-2 hover:rotate-0 transition-transform cursor-pointer font-mono">
-          HOY NO SE FESTEJA PRESENCIAL ⚠️
+        <div className="bg-white text-black border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform rotate-2 hover:rotate-0 transition-transform cursor-pointer font-mono">
+          FÁBRICAS EN OTRA COSA 🧶
         </div>
-        <div className="bg-purple-600 text-white font-black px-6 py-2 border-4 border-black shadow-[4px_4px_0px_black] transform rotate-6 hover:rotate-0 transition-transform cursor-pointer font-mono">
-          TEJIENDO TRAMA COMUNITARIA ✨
+        <div className="bg-indigo-600 text-white border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform rotate-6 hover:rotate-0 transition-transform cursor-pointer font-mono">
+          VAMOS INFANCIAS ✨
         </div>
       </div>
     </div>
