@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import Edition07 from "./components/Edition07";
 import { 
   Menu,
   X,
@@ -1132,9 +1133,9 @@ export default function App() {
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
-      return saved ? parseInt(saved) : 6;
+      return saved ? parseInt(saved) : 7;
     }
-    return 6;
+    return 7;
   });
 
   useEffect(() => {
@@ -1495,7 +1496,7 @@ export default function App() {
             
             <div className="mb-8 space-y-2">
               <p className="text-[10px] font-black uppercase opacity-50 mb-2">Seleccionar Edición</p>
-              <div className="grid grid-cols-6 gap-1">
+              <div className="grid grid-cols-4 gap-1">
                 <button 
                   onClick={() => toggleEdition(1)}
                   className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
@@ -1531,6 +1532,12 @@ export default function App() {
                   className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 6 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
                   Vol. 6
+                </button>
+                <button 
+                  onClick={() => toggleEdition(7)}
+                  className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 7 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                >
+                  Vol. 8
                 </button>
               </div>
             </div>
@@ -1575,6 +1582,16 @@ export default function App() {
                   <a href="#aliento-ed6" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-cyan-400 transition-colors border-b border-white/10 pb-1">Buzón de Aliento</a>
                 </>
               )}
+              {edition === 7 && (
+                <>
+                  <a href="#inicio-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-emerald-400 transition-colors border-b border-white/10 pb-1 text-emerald-300 animate-pulse">📰 Portada</a>
+                  <a href="#cabral-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-amber-400 transition-colors border-b border-white/10 pb-1">🐈⬛ Se Busca Cabral</a>
+                  <a href="#lost-tips-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-rose-400 transition-colors border-b border-white/10 pb-1">🐾 Guía de Cuidados</a>
+                  <a href="#notificaciones-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-rose-500 transition-colors border-b border-white/10 pb-1 font-extrabold text-rose-300">🚨 Red de Alertas</a>
+                  <a href="#aniv-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-indigo-400 transition-colors border-b border-white/10 pb-1">🎉 Cuenta Regresiva</a>
+                  <a href="#buzon-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-cyan-400 transition-colors border-b border-white/10 pb-1">✍️ Buzón Solidario</a>
+                </>
+              )}
             </nav>
           </motion.div>
         )}
@@ -1594,6 +1611,7 @@ export default function App() {
           {edition === 4 && <Edition04 />}
           {edition === 5 && <Edition05 />}
           {edition === 6 && <Edition06 />}
+          {edition === 7 && <Edition07 />}
         </div>
 
         {/* Centro de Descarga de PDF / Guardado */}
@@ -3690,6 +3708,1277 @@ function Edition06() {
           VAMOS INFANCIAS ✨
         </div>
       </div>
+    </div>
+  );
+}
+
+// ==========================================
+// --- EDICIÓN 07: NUEVA EDICIÓN ESPECIAL ANIMALES DE NUESTRO BARRIO 🐾 ---
+// ==========================================
+function OldEdition07() {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [checkedTips, setCheckedTips] = useState<Record<number, boolean>>({});
+  
+  // --- STATE FOR DATABASE WISHES (Mensajes Solidarios de Mascotas) ---
+  const [wishes, setWishes] = useState<Array<{ id: number; author: string; text: string; date: string }>>([]);
+  const [newWishAuthor, setNewWishAuthor] = useState<string>("");
+  const [newWishText, setNewWishText] = useState<string>("");
+  const [isSubmittingWish, setIsSubmittingWish] = useState<boolean>(false);
+  const [wishError, setWishError] = useState<string | null>(null);
+
+  // --- INTERACTIVE ANIMAL MAP ENGINE (NUESTROS AMIGOS PELUDOS) ---
+  const [selectedSpot, setSelectedSpot] = useState<string | null>(null);
+  const [selectedAnimals, setSelectedAnimals] = useState<Record<string, { name: string; icon: string; skill: string }>>({
+    arbol: { name: "El Búho del Patio", icon: "🦉", skill: "Vigila el patio de noche con ojos gigantes" },
+    jardin: { name: "El Perro Callejero Manso", icon: "🐶", skill: "Corre de vereda a vereda dando mimos" },
+    banco: { name: "Cabral, el Gatito Negro", icon: "🐈⬛", skill: "Duerme siestas al sol con su collar naranja" },
+    umbral: { name: "La Tortuga del Alero", icon: "🐢", skill: "Lenta pero segura, pasea por la entrada" },
+    tejado: { name: "El Gato de la Vereda", icon: "🐈", skill: "Maúlla canciones dulces desde la altura" }
+  });
+
+  const neighborhoodAnimals = [
+    { name: "Cabral, el Gatito Negro", icon: "🐈⬛", skill: "Duerme siestas al sol con su collar naranja" },
+    { name: "El Búho del Patio", icon: "🦉", skill: "Vigila el patio de noche con ojos gigantes" },
+    { name: "El Perro Callejero Manso", icon: "🐶", skill: "Corre de vereda a vereda dando mimos" },
+    { name: "La Tortuga del Alero", icon: "🐢", skill: "Lenta pero segura, pasea por la entrada" },
+    { name: "El Gato de la Vereda", icon: "🐈", skill: "Maúlla canciones dulces desde la altura" },
+    { name: "Pajaritos del Alero", icon: "🐦", skill: "Cantan temprano despertando el barrio" },
+    { name: "La Cotorrita Verde", icon: "🦜", skill: "Repite sonidos teatrales en Guadalupe Oeste" }
+  ];
+
+  // --- GAME: RESCATE SILENCIOSO EN EL BARRIO 🐾🧣 ---
+  const [ballPosition, setBallPosition] = useState<number>(50); // reused ballPosition for identical canvas gauge ref
+  const [direction, setDirection] = useState<number>(1);
+  const [gameState, setGameState] = useState<'prep' | 'aiming' | 'result'>('prep');
+  const [gameResult, setGameResult] = useState<'spotted' | 'scared' | null>(null);
+  const [gameScore, setGameScore] = useState({ spotted: 0, scared: 0 });
+
+  // Move pointer during search phase
+  useEffect(() => {
+    if (gameState !== 'aiming') return;
+    const interval = setInterval(() => {
+      setBallPosition(pos => {
+        let next = pos + direction * 5;
+        if (next >= 100) {
+          setDirection(-1);
+          return 100;
+        }
+        if (next <= 0) {
+          setDirection(1);
+          return 0;
+        }
+        return next;
+      });
+    }, 24);
+    return () => clearInterval(interval);
+  }, [gameState, direction]);
+
+  const handleSearch = () => {
+    if (gameState !== 'aiming') return;
+    setGameState('result');
+
+    // Quiet zone resides < 30 or > 70.
+    const isSuccess = ballPosition < 30 || ballPosition > 70;
+
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      if (isSuccess) {
+        setGameResult('spotted');
+        setGameScore(prev => ({ ...prev, spotted: prev.spotted + 1 }));
+        
+        // Gentle meow sound sweep (high, affectionate rise)
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else {
+        setGameResult('scared');
+        setGameScore(prev => ({ ...prev, scared: prev.scared + 1 }));
+        
+        // Scared run sound rattle (descending sawtooth)
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      }
+    } catch (e) {
+      if (isSuccess) {
+        setGameResult('spotted');
+        setGameScore(prev => ({ ...prev, spotted: prev.spotted + 1 }));
+      } else {
+        setGameResult('scared');
+        setGameScore(prev => ({ ...prev, scared: prev.scared + 1 }));
+      }
+    }
+  };
+
+  const resetGame = () => {
+    setBallPosition(50);
+    setGameState('prep');
+    setGameResult(null);
+  };
+
+  // --- AUDIO / TEXT TO SPEECH (VOZ PROTECTORA DE NUESTRO BARRIO) ---
+  const [speechState, setSpeechState] = useState<{
+    isSpeaking: boolean;
+    isPaused: boolean;
+    currentIndex: number;
+  }>({
+    isSpeaking: false,
+    isPaused: false,
+    currentIndex: -1
+  });
+
+  const textToRead = [
+    "¡Hola vecinas y vecinos! Bienvenidos a la Edición Especial de El Dorrego dedicada a los animales de nuestro barrio.",
+    "En Guadalupe Oeste y Coronel Dorrego también viven muchos amigos de cuatro patas que son parte de nuestra vida cotidiana. Por eso, este volumen les da un lugar muy especial para ayudarlos y cuidarlos.",
+    "Principalmente, difundimos el caso urgente de Cabral, un gatito negro de dos años que se perdió por las calles Azcuénaga y Güemes. Solía llevar collar naranja flúo y tiene una manchita blanca en la ingle. ¡Ayudemos todos a que vuelva a casa!",
+    "Además, te traemos un Pizarrón de Amigos del Barrio Interactiva: hacé click para armar tu mapa de animales preferidos en las veredas y tejados.",
+    "Y desafía tu delicadeza en el interactivo de rescate: ¡Trata de acercarte sigilosamente por los bordes para ofrecerle una mantita a Cabral sin que se asuste!",
+    "No te olvides de registrar tu mensaje solidario en el buzón conectado. Tus palabras de aliento animal se guardarán para siempre en la nube digital. ¡Muchas gracias por cuidar a nuestros amigos peludos!"
+  ];
+
+  const speakChunk = (index: number) => {
+    if (index >= textToRead.length) {
+      setSpeechState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
+      return;
+    }
+    
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {
+      console.warn("speechSynthesis cancel error", e);
+    }
+    
+    const utterance = new SpeechSynthesisUtterance(textToRead[index]);
+    
+    const voices = window.speechSynthesis.getVoices();
+    const spanishVoice = voices.find(v => v.lang.startsWith("es-AR")) ||
+                         voices.find(v => v.lang.startsWith("es-UY")) ||
+                         voices.find(v => v.lang.startsWith("es-ES") && v.name.toLowerCase().includes("female")) ||
+                         voices.find(v => v.lang.startsWith("es-MX")) ||
+                         voices.find(v => v.lang.startsWith("es-ES")) ||
+                         voices.find(v => v.lang.startsWith("es"));
+    
+    if (spanishVoice) {
+      utterance.voice = spanishVoice;
+    }
+    utterance.lang = spanishVoice ? spanishVoice.lang : "es-AR";
+    utterance.pitch = 1.05;
+    utterance.rate = 0.94;
+
+    utterance.onend = () => {
+      setSpeechState(prev => {
+        const nextIndex = prev.currentIndex + 1;
+        if (nextIndex < textToRead.length) {
+          setTimeout(() => speakChunk(nextIndex), 250);
+          return { ...prev, currentIndex: nextIndex };
+        } else {
+          return { isSpeaking: false, isPaused: false, currentIndex: -1 };
+        }
+      });
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== "interrupted") {
+        setSpeechState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
+      }
+    };
+
+    setSpeechState({ isSpeaking: true, isPaused: false, currentIndex: index });
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.error("speechSynthesis speak error", err);
+    }
+  };
+
+  const handlePlaySpeech = () => {
+    if (speechState.isSpeaking && speechState.isPaused) {
+      window.speechSynthesis.resume();
+      setSpeechState(prev => ({ ...prev, isPaused: false }));
+    } else if (speechState.isSpeaking) {
+      window.speechSynthesis.pause();
+      setSpeechState(prev => ({ ...prev, isPaused: true }));
+    } else {
+      speakChunk(0);
+    }
+  };
+
+  const handleStopSpeech = () => {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {}
+    setSpeechState({ isSpeaking: false, isPaused: false, currentIndex: -1 });
+  };
+
+  // --- DATABASE HELPER METHODS ---
+  const getApiUrl = (endpoint: string) => {
+    const currentHost = window.location.hostname;
+    if (
+      currentHost.includes("localhost") || 
+      currentHost.includes("127.0.0.1") || 
+      currentHost.includes("run.app")
+    ) {
+      return endpoint;
+    }
+    return `https://ais-pre-rawgpkbifbfojkwv7g7d5m-112551938117.us-east5.run.app${endpoint}`;
+  };
+
+  const fetchWishes = async () => {
+    try {
+      const url = getApiUrl("/api/wishes");
+      const response = await fetch(url);
+      if (response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          setWishes(data);
+          localStorage.setItem("el_dorrego_wishes", JSON.stringify(data));
+          return;
+        }
+      }
+      loadLocalWishes();
+    } catch (err) {
+      console.warn("Could not fetch wishes", err);
+      loadLocalWishes();
+    }
+  };
+
+  const loadLocalWishes = () => {
+    try {
+      const stored = localStorage.getItem("el_dorrego_wishes");
+      if (stored) {
+        setWishes(JSON.parse(stored));
+      } else {
+        const seed = [
+          {
+            id: 1,
+            author: "Mateo de la Esquina",
+            text: "¡Cabral va a aparecer pronto! Salgamos con galletitas ricas y hablemos con cariño para que no se asuste.",
+            date: "2026-06-12T12:00:00.000Z"
+          },
+          {
+            id: 2,
+            author: "La Vecina de las Tortas",
+            text: "Tengo un platito con comida húmeda en la ventana por si pasa Cabral o algún amigo de cuatro patas con hambre, ¡unidos nos cuidamos!",
+            date: "2026-06-11T18:30:00.000Z"
+          }
+        ];
+        localStorage.setItem("el_dorrego_wishes", JSON.stringify(seed));
+        setWishes(seed);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleWishSubmit = async (e: any) => {
+    e.preventDefault();
+    if (!newWishText.trim()) {
+      setWishError("¡Por favor, escribí un mensaje solidario de bienestar animal!");
+      return;
+    }
+    setWishError(null);
+    setIsSubmittingWish(true);
+
+    const authorVal = newWishAuthor.trim() ? newWishAuthor.trim() : "Vecino protector anónimo";
+    const textVal = newWishText.trim();
+    const dateVal = new Date().toISOString();
+    const newWishObj = {
+      id: Date.now(),
+      author: authorVal,
+      text: textVal,
+      date: dateVal
+    };
+
+    let savedOnServer = false;
+
+    try {
+      const url = getApiUrl("/api/wishes");
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          author: authorVal,
+          text: textVal,
+        }),
+      });
+      if (response.ok) {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const data = await response.json();
+          setWishes(data);
+          localStorage.setItem("el_dorrego_wishes", JSON.stringify(data));
+          setNewWishText("");
+          setNewWishAuthor("");
+          savedOnServer = true;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not save wish to server API", err);
+    }
+
+    if (!savedOnServer) {
+      try {
+        const stored = localStorage.getItem("el_dorrego_wishes");
+        let wishesList = [];
+        if (stored) {
+          wishesList = JSON.parse(stored);
+        } else {
+          wishesList = [
+            {
+              id: 1,
+              author: "Mateo de la Esquina",
+              text: "¡Cabral va a aparecer pronto! Salgamos con galletitas ricas y hablemos con cariño para que no se asuste.",
+              date: "2026-06-12T12:00:00.000Z"
+            }
+          ];
+        }
+        const updatedList = [newWishObj, ...wishesList];
+        localStorage.setItem("el_dorrego_wishes", JSON.stringify(updatedList));
+        setWishes(updatedList);
+        setNewWishText("");
+        setNewWishAuthor("");
+      } catch (localErr) {
+        console.error(localErr);
+        setWishError("No se pudo guardar localmente.");
+      }
+    }
+    setIsSubmittingWish(false);
+  };
+
+  useEffect(() => {
+    fetchWishes();
+
+    return () => {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (err) {}
+    };
+  }, []);
+
+  // --- PLAY OWL SOUND ---
+  const playHootSound = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playFreq = (freq: number, start: number, duration: number) => {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.frequency.setValueAtTime(freq, start);
+        osc.frequency.quadraticRampToValueAtTime(freq - 25, start + duration);
+        
+        gainNode.gain.setValueAtTime(0, start);
+        gainNode.gain.linearRampToValueAtTime(0.12, start + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+      
+      const now = audioCtx.currentTime;
+      playFreq(340, now, 0.28);
+      playFreq(335, now + 0.38, 0.42);
+    } catch (e) {
+      console.warn("Audio Context is not supported or blocked", e);
+    }
+  };
+
+  // --- HEADLINE GENERATOR DATA ---
+  const [selectedHeadline, setSelectedHeadline] = useState<string>("¡ENTRE TODOS CUIDAMOS A NUESTROS AMIGOS DE CUATRO PATAS! 🐾");
+  const [selectedDoodle, setSelectedDoodle] = useState<string>("🐈⬛");
+  const [customHeadline, setCustomHeadline] = useState<string>("¡AYUDEMOS A CABRAL A VOLVER CON SU FAMILIA DE GUADALUPE OESTE!");
+
+  const fantasticPresets = [
+    "¡CABRAL ES PARTE DE NUESTRAS INFANCIAS Y VOLVERÁ A CASA PRONTO! 🐈⬛",
+    "¡EL BÚHO DEL PATIO NOS ENSEÑA A HABLAR BAJITO PARA NO ASUSTARLO! 🦉",
+    "¡GUADALUPE OESTE SE UNE EN UNA RED DE AMOR Y CUIDADO ANIMAL! 💚",
+    "¡NUESTRAS MASCOTAS DEL BARRIO CORONEL DORREGO SON SAGRADAS! 🐾",
+    "¡EL ALERO DE LAS INFANCIAS CELEBRA 10 AÑOS COSIENDO MANTITAS PARA TODOS! 🧣"
+  ];
+
+  const doodles = [
+    { char: "🐈⬛", label: "Cabral, el gatito" },
+    { char: "🦉", label: "El Búho Guardián" },
+    { char: "🐶", label: "Perro de vecinos" },
+    { char: "🐾", label: "Huellas de amor" },
+    { char: "🌳", label: "Árbol del Patio" },
+    { char: "🧣", label: "Manta suave" },
+    { char: "🦴", label: "Alimento rico" },
+    { char: "🥛", label: "Leche calentita" }
+  ];
+
+  const handleCustomSubmit = (e: any) => {
+    e.preventDefault();
+    if (customHeadline.trim()) {
+      setSelectedHeadline(customHeadline.trim().toUpperCase());
+      setCustomHeadline("");
+    }
+  };
+
+  const changeAnimal = (spot: string, animal: typeof neighborhoodAnimals[0]) => {
+    setSelectedAnimals(prev => ({
+      ...prev,
+      [spot]: animal
+    }));
+    setSelectedSpot(null);
+  };
+
+  const toggleTip = (index: number) => {
+    setCheckedTips(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+  const allTipsChecked = 
+    checkedTips[0] && checkedTips[1] && checkedTips[2] && checkedTips[3];
+
+  return (
+    <div className="text-black space-y-12">
+      {/* Top Info Bar - Forest Green & Amber Theme */}
+      <div className="flex justify-between items-end border-b-4 pb-4 mb-8" style={{ borderBottomColor: '#10b981' }}>
+         <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-emerald-400 via-amber-500 to-emerald-700">
+          <span className="text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black] bg-gradient-to-r from-emerald-500 to-teal-600">VOLUMEN 07</span>
+          DIARIO EL DORREGO • EDICIÓN ESPECIAL: ANIMALES DE NUESTRO BARRIO 🐾🐕🐈⬛ • SANTA FE • 12 DE JUNIO DE 2026
+        </div>
+        <div className="text-right text-[10px] md:text-sm font-black uppercase text-emerald-600">
+          AÑO I • Nº 007<br />
+          TODO EL BARRIO BUSCA A CABRAL Y CELEBRA LA VIDA
+        </div>
+      </div>
+
+      {/* Spectacular Masthead with Emerald & Pink / Orange Border Gradients */}
+      <header id="inicio-ed7" className="border-b-[12px] border-b-transparent bg-gradient-to-r from-emerald-500 via-teal-300 via-amber-400 via-emerald-300 to-pink-500 pb-1.5 mb-12 text-center relative rounded-b-xl shadow-[0_4px_15px_rgba(0,0,0,0.15)]">
+        <div className="bg-white py-10 px-4">
+          <motion.div 
+            initial={{ scale: 0, rotate: 15 }}
+            animate={{ scale: 1, rotate: -8 }}
+            className="absolute -top-10 -right-2 bg-gradient-to-r from-emerald-400 via-amber-300 to-pink-300 border-4 border-black p-4 rounded-xl font-black text-xs md:text-sm text-black shadow-[6px_6px_0px_black] z-20 animate-bounce"
+          >
+            🐈⬛ ¡MÁXIMA PRIORIDAD SOLIDARIA! 🐾
+          </motion.div>
+          
+          <a href="#inicio-ed7" className="block hover:opacity-80 transition-opacity">
+            <h1 className="text-[12vw] md:text-[8.5rem] font-serif font-black tracking-tighter leading-none mb-4 ink-bleed uppercase italic text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 via-amber-500 via-pink-400 to-emerald-700 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+              EL DORREGO
+            </h1>
+          </a>
+          
+          <div className="relative inline-block px-4">
+            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-amber-300 to-pink-400 transform -rotate-1 skew-x-2 translate-y-1"></div>
+            <div className="relative border-4 border-black py-3 px-8 md:px-16 text-lg md:text-3xl font-black tracking-[0.1em] bg-amber-300 text-black translate-y-[-4px] shadow-[6px_6px_0px_black] uppercase leading-tight">
+              🐾 EDICIÓN ESPECIAL: ANIMALES DE NUESTRO BARRIO 🐾
+            </div>
+          </div>
+
+          <div className="mt-8 text-sm md:text-lg font-black max-w-xl mx-auto uppercase tracking-wide bg-emerald-50 border-2 border-black/20 p-2.5 rounded-lg text-emerald-950">
+            "En Coronel Dorrego y Guadalupe Oeste nos unimos para difundir casos, dar cariño y cuidar al búho del patio de El Alero."
+          </div>
+        </div>
+      </header>
+
+      {/* EDITORIAL COLUMN BLOCK: "¿QUIÉN BUSCA A CABRAL? / REFUGIO DE AMOR" */}
+      <section id="urgente-ed7" className="relative group">
+        <div className="absolute inset-0 bg-emerald-50 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-emerald-400"></div>
+        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] relative overflow-hidden rounded-2xl bg-gradient-to-tr from-emerald-50/50 via-white to-amber-50/30">
+          
+          <div className="absolute -top-12 -left-12 w-40 h-40 bg-emerald-300/30 rounded-full blur-2xl pointer-events-none"></div>
+          <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-pink-200/20 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row gap-8 items-stretch">
+            
+            {/* Left: Polaroid-styled flyer representing the Lost Cat case (Takes 2/5 width) */}
+            <div className="w-full md:w-2/5 bg-gradient-to-br from-stone-900 to-stone-850 text-white p-6 border-4 border-black shadow-[6px_6px_0px_black] flex flex-col justify-between rounded-xl transform -rotate-1">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="bg-amber-400 text-black rounded-full w-8 h-8 flex items-center justify-center font-black text-lg border border-black animate-bounce">📢</span>
+                  <h3 className="text-lg font-black uppercase tracking-tight text-amber-300 drop-shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">¡SE BUSCA A CABRAL!</h3>
+                </div>
+                
+                <div className="aspect-square w-full rounded-lg border-2 border-white/40 overflow-hidden bg-black relative shadow-inner mb-4">
+                  <img 
+                    src="https://i.postimg.cc/0yS6FLwd/1781301706888.png" 
+                    alt="Cabral Oficial" 
+                    className="w-full h-full object-contain cursor-zoom-in"
+                    onClick={() => setIsFullscreen(true)}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=1200";
+                    }}
+                  />
+                  <div className="absolute bottom-1 right-2 bg-black/90 text-white font-mono text-[8px] px-1.5 py-0.5 rounded border border-white/10">
+                    Click para agrandar 🔍
+                  </div>
+                </div>
+
+                <p className="text-sm font-bold leading-normal text-yellow-300 uppercase mb-2">
+                  ZONA: AZCUÉNAGA Y GÜEMES
+                </p>
+                <p className="text-xs font-medium leading-relaxed opacity-90 text-gray-200">
+                  Macho castrado de dos años, de pelo lacio negro y tamaño mediano. Solía llevar collar naranja flúo por Guadalupe Oeste. Su marca única es una manchita blanca en la ingle.
+                </p>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/15">
+                <a 
+                  href="tel:3424637120"
+                  className="bg-red-600 hover:bg-red-500 text-white text-center font-mono font-black text-sm block py-2.5 rounded shadow-[3px_3px_0px_#f59e0b] border-2 border-black active:translate-y-0.5 cursor-pointer"
+                >
+                  📞 LLAMAR: 342 463-7120
+                </a>
+              </div>
+            </div>
+
+            {/* Right: Narrative / Editorial body + Audio Shared reading */}
+            <div className="w-full md:w-3/5 space-y-6 flex flex-col justify-between">
+              <div>
+                <span className="inline-block bg-emerald-500 text-white px-3 py-1 font-black uppercase text-xs transform rotate-1 shadow-[3px_3px_0px_black] mb-3">
+                  📰 EDICIÓN ESPECIAL COLECTIVA DE ANIMALES
+                </span>
+                <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-black leading-none mb-4">
+                  Nuestros vecinos de cuatro patas merecen volver a casa
+                </h3>
+                <p className="text-sm font-bold text-gray-700 leading-relaxed">
+                  En el barrio Coronel Dorrego y Guadalupe Oeste también viven muchos de nuestros mejores amigos. A veces se asustan por los ruidos fuertes, se alejan y no encuentran el camino de vuelta a su hogar.
+                </p>
+                <p className="text-sm font-bold text-gray-700 leading-relaxed mt-2 animate-pulse text-[#b45309]">
+                  En este volumen siete de nuestro diario comunitario, les damos un lugar prioritario: difundimos el aviso de búsqueda de nuestro vecino gatito Cabral para que vuelva con su familia, y recordamos cómo podemos ser guardianes solidarios con las mascotas de la zona.
+                </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-xs font-black text-emerald-950 uppercase">
+                  <div className="flex items-center gap-2 bg-emerald-100 p-2 border-2 border-black/10 rounded">
+                    🗺️ Mapa de Animales del Barrio Interactivo
+                  </div>
+                  <div className="flex items-center gap-2 bg-yellow-100 p-2 border-2 border-black/10 rounded">
+                    🧣 Juego arcade "Camino a Casa"
+                  </div>
+                  <div className="flex items-center gap-2 bg-rose-100 p-2 border-2 border-black/10 rounded">
+                    🎙️ Audio-vecino con lectura dictada
+                  </div>
+                  <div className="flex items-center gap-2 bg-indigo-100 p-2 border-2 border-black/10 rounded">
+                    📢 Deseos duraderos en base de datos
+                  </div>
+                </div>
+              </div>
+
+              {/* AUDIOLIBRO / LECTURA COMPARTIDA */}
+              <div className="bg-emerald-50 border-4 border-black p-4 shadow-[4px_4px_0px_black] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`bg-emerald-200 border-2 border-black p-2 rounded-full ${speechState.isSpeaking && !speechState.isPaused ? 'animate-bounce' : ''}`}>
+                    <AudioLines className="w-5 h-5 text-emerald-900" />
+                  </div>
+                  <div className="text-left font-sans">
+                    <p className="text-[11px] font-black uppercase text-emerald-900 flex items-center gap-2">
+                      <span>📻 AUDIO-LECTURA ANIMAL COMPARTIDA</span>
+                      {speechState.isSpeaking && !speechState.isPaused && (
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                      )}
+                    </p>
+                    <p className="text-[11px] font-bold text-gray-800 leading-tight">
+                      {speechState.isSpeaking 
+                        ? (speechState.isPaused ? "Nuestra narración está en pausa..." : "Nuestros amigos de cuatro patas leen para vos...") 
+                        : "¡Sintonizá y escuchá al portavoz escolar!"
+                      }
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    onClick={handlePlaySpeech}
+                    className="flex-1 sm:flex-initial bg-emerald-400 hover:bg-emerald-300 border-2 border-black px-3 py-1.5 text-xs font-black uppercase flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer"
+                  >
+                    {speechState.isSpeaking && !speechState.isPaused ? (
+                      <>
+                        <Pause className="w-3.5 h-3.5" /> Pausar
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5" /> Escuchar
+                      </>
+                    )}
+                  </button>
+                  {speechState.isSpeaking && (
+                    <button
+                      onClick={handleStopSpeech}
+                      className="bg-red-500 hover:bg-red-400 text-white border-2 border-black px-2 py-1.5 text-xs font-black uppercase flex items-center justify-center gap-1 shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer"
+                      title="Detener audio"
+                    >
+                      <Square className="w-3.5 h-3.5 flex-shrink-0" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* SQUAD / ANIMAL BUILDER WIDGET: "MI PLANO DE ANIMALES DEL BARRIO" */}
+      <section id="mapa-ed7" className="relative group">
+        <div className="absolute inset-0 bg-amber-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-amber-400"></div>
+        
+        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] rounded-2xl space-y-8">
+          
+          <div className="text-center md:text-left border-b-4 border-black pb-4">
+            <span className="bg-amber-400 border-2 border-black text-black text-xs font-black px-2.5 py-1 uppercase rounded tracking-wider shadow-[2px_2px_0px_black] inline-block mb-3">
+              🐾 PIZARRÓN DE HÁBITAT INTERACTIVO
+            </span>
+            <h3 className="text-3xl md:text-4xl font-black uppercase leading-none">
+              ¡EL REGISTRO DE MASCOTAS DE GUADALUPE OESTE!
+            </h3>
+            <p className="text-xs font-black text-gray-500 mt-2">
+              Hacé click en cada rincón del barrio para designar qué amigo peludo o con plumas duerme, pasea o cuida de nuestro hábitat.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            {/* The Football Pitch equivalent (A beautiful neighborhood plan map) (7 cols) */}
+            <div className="lg:col-span-7 bg-[#4ade80] border-4 border-black p-4 relative rounded-2xl shadow-[8px_8px_0px_black] overflow-hidden">
+              {/* Grass pattern */}
+              <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#15803d_1.5px,transparent_1.5px)] [background-size:16px_16px] pointer-events-none"></div>
+              
+              {/* Map sketch elements (roads, bushes, fences) */}
+              <div className="absolute inset-x-0 top-1/3 h-10 bg-amber-500/10 border-y-2 border-dashed border-black/10 pointer-events-none"></div>
+              <div className="absolute left-1/4 top-0 bottom-0 w-8 bg-amber-500/10 border-x-2 border-dashed border-black/10 pointer-events-none"></div>
+              
+              {/* Cozy neighborhood drawing helpers */}
+              <div className="absolute top-2 left-[5%] text-slate-800 font-mono text-[9px] font-black opacity-30">🏡 CALLE AZCUÉNAGA</div>
+              <div className="absolute top-[40%] right-[3%] text-slate-800 font-mono text-[9px] font-black opacity-30 rotate-90">🏠 CALLE GÜEMES</div>
+
+              {/* Position Spot Markers */}
+              <div className="relative z-10 flex flex-col justify-between h-[450px] py-4">
+                
+                {/* Rooftop / Tejado spot */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedSpot('tejado')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedSpot === 'tejado' ? 'bg-amber-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-black text-white hover:bg-slate-800'}`}
+                  >
+                    🐱 El tejado: {selectedAnimals.tejado.name} {selectedAnimals.tejado.icon}
+                  </button>
+                </div>
+
+                {/* Big tree / Arbol spot */}
+                <div className="flex justify-start pl-8">
+                  <button 
+                    onClick={() => setSelectedSpot('arbol')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedSpot === 'arbol' ? 'bg-amber-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🌳 El árbol del patio: {selectedAnimals.arbol.name} {selectedAnimals.arbol.icon}
+                  </button>
+                </div>
+
+                {/* Grass yard / Jardin spot */}
+                <div className="flex justify-end pr-8">
+                  <button 
+                    onClick={() => setSelectedSpot('jardin')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedSpot === 'jardin' ? 'bg-amber-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🌱 El patio verde: {selectedAnimals.jardin.name} {selectedAnimals.jardin.icon}
+                  </button>
+                </div>
+
+                {/* Entrance step / Umbral spot */}
+                <div className="flex justify-start pl-16">
+                  <button 
+                    onClick={() => setSelectedSpot('umbral')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedSpot === 'umbral' ? 'bg-amber-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🚪 Umbral del Alero: {selectedAnimals.umbral.name} {selectedAnimals.umbral.icon}
+                  </button>
+                </div>
+
+                {/* Sidewalk Bench / Banco spot */}
+                <div className="flex justify-center">
+                  <button 
+                    onClick={() => setSelectedSpot('banco')}
+                    className={`px-3 py-1.5 rounded-lg border-2 border-black flex items-center gap-1.5 transition-all text-xs font-black uppercase ${selectedSpot === 'banco' ? 'bg-amber-300 animate-pulse text-black scale-110 shadow-[3px_3px_0px_black]' : 'bg-white text-black hover:bg-gray-100'}`}
+                  >
+                    🪑 Banco de vereda: {selectedAnimals.banco.name} {selectedAnimals.banco.icon}
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Selection & Detail controls (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              
+              {selectedSpot ? (
+                <div className="bg-amber-50 border-4 border-black p-4 rounded-xl shadow-[4px_4px_0px_black] space-y-3">
+                  <h4 className="text-sm font-black uppercase text-amber-700 flex items-center gap-1">
+                    <span>🔄 Seleccioná quién habita en:</span> <span className="underline font-mono">{selectedSpot}</span>
+                  </h4>
+                  <div className="space-y-1 max-h-[260px] overflow-y-auto">
+                    {neighborhoodAnimals.map((animal, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => changeAnimal(selectedSpot, animal)}
+                        className="w-full text-left font-black text-xs p-2.5 border-2 border-black/15 hover:border-black rounded-lg bg-white hover:bg-amber-100 flex items-center justify-between transition-all"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="text-xl">{animal.icon}</span>
+                          <span>{animal.name}</span>
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold max-w-[150px] truncate italic">
+                          {animal.skill}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setSelectedSpot(null)}
+                    className="w-full bg-black text-white hover:bg-gray-800 text-xs font-black py-2 uppercase border-2 border-black shadow-[2px_2px_0px_black] cursor-pointer"
+                  >
+                    Cancelar Selección
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-emerald-50 border-4 border-black p-5 rounded-xl shadow-[4px_4px_0px_black] space-y-4">
+                  <h4 className="text-lg font-black uppercase text-emerald-950 flex items-center gap-2">
+                    DRECCIONARIO COMUNITARIO DE HUELLAS
+                  </h4>
+                  <p className="text-xs font-bold text-gray-650 leading-normal">
+                    Este representativo plano muestra cómo habitamos colectivamente con cada ser vivo en Guadalupe Oeste. Hacé click en cualquier posición verde del pizarrón para designar qué animal custodiará la alegría barrial allí.
+                  </p>
+                  
+                  <div className="border-t border-black/15 pt-3 space-y-2 text-xs">
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-emerald-800 shrink-0">🐱 TEJADO:</span>
+                      <div className="text-right pl-4">
+                        <p className="font-black text-gray-900">{selectedAnimals.tejado.name} {selectedAnimals.tejado.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedAnimals.tejado.skill}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-emerald-800 shrink-0">🌳 ÁRBOL:</span>
+                      <div className="text-right pl-4">
+                        <p className="font-black text-gray-900">{selectedAnimals.arbol.name} {selectedAnimals.arbol.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedAnimals.arbol.skill}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-emerald-800 shrink-0">🌱 PATIO VERDE:</span>
+                      <div className="text-right pl-4">
+                        <p className="font-black text-gray-900">{selectedAnimals.jardin.name} {selectedAnimals.jardin.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedAnimals.jardin.skill}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start border-b border-black/5 pb-1">
+                      <span className="font-black text-emerald-800 shrink-0">🚪 UMBRAL:</span>
+                      <div className="text-right pl-4">
+                        <p className="font-black text-gray-900">{selectedAnimals.umbral.name} {selectedAnimals.umbral.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedAnimals.umbral.skill}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <span className="font-black text-emerald-800 shrink-0">🪑 BANCO VEREDA:</span>
+                      <div className="text-right pl-4">
+                        <p className="font-black text-gray-900">{selectedAnimals.banco.name} {selectedAnimals.banco.icon}</p>
+                        <p className="text-[10px] text-gray-500 font-medium italic">{selectedAnimals.banco.skill}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Quote Sticker */}
+              <div className="bg-gradient-to-tr from-emerald-500 to-teal-600 text-white p-4 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl transform rotate-1">
+                <span className="text-[9px] font-mono font-black uppercase tracking-widest block text-amber-300">SOLIDARIOS CON MASCOTAS</span>
+                <p className="font-black text-xs leading-normal mt-1 italic">
+                  "El cuidado animal en Dorrego es un valor de encuentro: dejar comidita, hablarles bajito al búho solitario, buscar a Cabral y cobijar a las mascotas es parte fundamental de nuestra querida comunidad."
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* MINI ARCADE TIMING GAME: "¡CAMINO A CASA GENTIL!" */}
+      <section id="juego-ed7" className="relative group">
+        <div className="absolute inset-0 bg-rose-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-rose-400"></div>
+        
+        <div className="bg-white border-[8px] border-black p-6 md:p-10 shadow-[15px_15px_0px_black] rounded-2xl space-y-6">
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-4 border-black pb-4">
+            <div>
+              <span className="bg-rose-500 border-2 border-black text-white text-xs font-black px-2.5 py-1 uppercase rounded tracking-wider shadow-[2px_2px_0px_black] inline-block mb-1">
+                🎮 MINI-JUEGO DE REACCIÓN GENTIL
+              </span>
+              <h3 className="text-3xl md:text-4xl font-black uppercase leading-tight text-rose-950">
+                🧣 ¡COBIJA A CABRAL EN CASA! 🐈⬛
+              </h3>
+            </div>
+            <div className="bg-gray-100 border-2 border-black p-2 font-mono text-xs font-black rounded-lg shadow-[2px_2px_0px_black]">
+              🐾 MARCADOR: <span className="text-emerald-600">RESCATADOS: {gameScore.spotted}</span> | <span className="text-rose-600">ASUSTADOS: {gameScore.scared}</span>
+            </div>
+          </div>
+
+          <p className="text-xs font-black text-gray-600">
+            Hacé click en <strong className="text-rose-500">COMENZAR BÚSQUEDA</strong> para iniciar la oscilación del sensor de ruido. Luego calculá y detenelo en los bordes silenciosos y tranquilos (<strong className="text-emerald-600">zonas verdes</strong>). ¡Si te detienes en el centro ruidoso, Cabral se asustará del tráfico y huirá a un lugar seguro!
+          </p>
+
+          <div className="border-4 border-black bg-gradient-to-b from-[#1c1917] to-[#44403c] p-6 relative rounded-xl h-72 flex flex-col justify-between overflow-hidden">
+            <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+
+            {/* Simulated Alley representation */}
+            <div className="w-4/5 mx-auto h-40 border-t-8 border-x-8 border-stone-400 bg-stone-900/40 relative flex justify-center items-end rounded-t-lg shadow-inner">
+              <div className="absolute top-2 left-6 text-stone-500 text-[10px] font-mono tracking-widest font-black uppercase">DIRECCIÓN: ESQUINA SILENCIOSA GÜEMES</div>
+              
+              {/* Lost Kitty Animated component */}
+              <motion.div 
+                animate={gameState === 'aiming' ? { x: [-40, 40, -40] } : { x: 0 }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute bottom-2 font-black text-5xl z-10 select-none"
+              >
+                🐈⬛
+              </motion.div>
+
+              {/* Sweet warm assets placement representation */}
+              <div className="absolute bottom-2 left-[15%] text-2xl animate-pulse opacity-50 select-none">🧣</div>
+              <div className="absolute bottom-2 right-[15%] text-2xl animate-pulse opacity-55 select-none">🥛</div>
+
+              {/* Visual Results Overlay */}
+              {gameResult === 'spotted' && (
+                <div className="absolute inset-0 bg-emerald-600/90 z-20 flex flex-col items-center justify-center text-white border-2 border-black rounded-t-lg font-black uppercase text-3xl animate-bounce tracking-widest text-shadow-md">
+                  <span>😻 ¡LO COBIJASTE! 🐾</span>
+                  <span className="text-xs mt-2 text-yellow-300">¡LE ARRIMASTE LA MANTA CON MUCHO AMOR Y SE DURMIÓ!</span>
+                </div>
+              )}
+              {gameResult === 'scared' && (
+                <div className="absolute inset-0 bg-rose-600/90 z-20 flex flex-col items-center justify-center text-white border-2 border-black rounded-t-lg font-black uppercase text-2xl animate-pulse tracking-wide text-center px-4">
+                  <span>🙀 ¡SE ASUSTÓ! 🏃⬛</span>
+                  <span className="text-xs mt-2 text-white/90">LA CALLE AZCUÉNAGA ESTÁ DEMASIADO RUIDOSA EN EL MEDIO</span>
+                </div>
+              )}
+            </div>
+
+            {/* Control Dashboard / Aiming Bar */}
+            <div className="relative z-10 w-full bg-black/40 border border-white/10 p-3 rounded-lg space-y-2.5">
+              
+              {/* Slider gauge */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-[9px] font-mono text-white/80 uppercase font-black tracking-wider">
+                  <span>SILENCIO (CARIÑO) 🧣</span>
+                  <span className="text-yellow-300">TRÁFICO ALTO (CUIDADO-RUIDO) 🔊</span>
+                  <span>SILENCIO (COBIJAR) 🥛</span>
+                </div>
+                <div className="w-full bg-white/20 h-4 rounded-full border border-black overflow-hidden relative">
+                  {/* Gauge marker indicators */}
+                  <div className="absolute inset-y-0 left-0 w-[30%] bg-emerald-500/25 pointer-events-none"></div>
+                  <div className="absolute inset-y-0 right-0 w-[30%] bg-emerald-500/25 pointer-events-none"></div>
+
+                  {/* Highlighted Pointer */}
+                  <div 
+                    className="absolute top-0 bottom-0 w-4 bg-yellow-400 border-x border-black transition-all duration-[24ms]" 
+                    style={{ left: `${ballPosition}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Control Buttons list */}
+              <div className="flex justify-center gap-4">
+                {gameState === 'prep' && (
+                  <button
+                    onClick={() => setGameState('aiming')}
+                    className="bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs px-6 py-2 border-2 border-black shadow-[2px_2px_0px_black] active:shadow-none active:translate-y-0.5 cursor-pointer"
+                  >
+                    🚀 COMENZAR BÚSQUEDA
+                  </button>
+                )}
+
+                {gameState === 'aiming' && (
+                  <button
+                    onClick={handleSearch}
+                    className="bg-rose-500 hover:bg-rose-400 text-white font-black text-xs px-8 py-2 border-2 border-black shadow-[2px_2px_0px_black] active:shadow-none active:translate-y-0.5 animate-pulse cursor-pointer"
+                  >
+                    🐾 ¡RESCATAR CON CARIÑO!
+                  </button>
+                )}
+
+                {gameState === 'result' && (
+                  <button
+                    onClick={resetGame}
+                    className="bg-emerald-400 hover:bg-emerald-300 text-black font-black text-xs px-6 py-2 border-2 border-black shadow-[2px_2px_0px_black] active:shadow-none active:translate-y-0.5 cursor-pointer"
+                  >
+                    🐾 SIGUIENTE RECORRIDO (RESET)
+                  </button>
+                )}
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* FUN HEADLINE GENERATOR FOR PET PRESENTS */}
+      <section id="portada-ed7" className="bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 border-4 border-black p-1 rounded-2xl shadow-[10px_10px_0px_black]">
+        <div className="bg-white p-6 md:p-8 rounded-xl space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-4 border-black pb-4">
+            <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter flex items-center gap-2">
+              <Sparkles className="w-7 h-7 text-emerald-600 animate-pulse" /> PLANILLA DE CORRESPONSAL ANIMAL
+            </h3>
+            <p className="text-[10px] font-mono font-black text-gray-500 bg-gray-100 px-3 py-1 border-2 border-black rounded uppercase">
+              ¡Armá la portada animal!
+            </p>
+          </div>
+
+          {/* Selected Headline Box */}
+          <div className="bg-emerald-50 border-4 border-black p-6 relative shadow-[4px_4px_0px_black] text-center overflow-hidden rounded-xl">
+            <div className="absolute top-0 left-0 bg-black text-white font-black text-[9px] px-2.5 py-0.5 uppercase">
+              TITULAR OFICIAL PUBLICADO
+            </div>
+            
+            <motion.p 
+              key={selectedHeadline}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-2xl md:text-4xl font-serif font-black uppercase italic text-black leading-tight tracking-tight my-4"
+            >
+              {selectedDoodle} "{selectedHeadline}" {selectedDoodle}
+            </motion.p>
+          </div>
+
+          {/* Headline Selectors & Inputs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div>
+              <p className="text-xs font-black uppercase mb-3 flex items-center gap-1.5 text-emerald-600">
+                <span>✨ Elegí un titular representativo animal:</span>
+              </p>
+              <div className="space-y-1.5 max-h-[180px] overflow-y-auto border-2 border-black/10 p-2.5 bg-gray-50/50 rounded-lg">
+                {fantasticPresets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedHeadline(preset)}
+                    className="w-full text-left text-xs font-bold p-2 hover:bg-emerald-50 border border-transparent hover:border-black/10 rounded transition-all leading-tight uppercase flex items-start gap-2 text-gray-800 cursor-pointer"
+                  >
+                    <span className="text-emerald-500">•</span>
+                    <span>{preset}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-between gap-4">
+              <form onSubmit={handleCustomSubmit} className="space-y-2">
+                <label className="block text-xs font-black uppercase text-emerald-600">
+                  ✍️ O redactá tu portada personalizada:
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customHeadline}
+                    onChange={(e) => setCustomHeadline(e.target.value)}
+                    placeholder="Ej. ¡Buscando a Cabral, el consentido del Alero!..."
+                    className="flex-1 border-2 border-black p-2 text-xs font-bold focus:outline-none focus:bg-amber-50 uppercase rounded shadow-[2px_2px_0px_black]"
+                    maxLength={100}
+                  />
+                  <button
+                    type="submit"
+                    className="bg-emerald-400 hover:bg-emerald-300 border-2 border-black px-4 py-2 text-xs font-black uppercase shadow-[2px_2px_0px_black] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none rounded cursor-pointer"
+                  >
+                    Publicar
+                  </button>
+                </div>
+              </form>
+
+              <div>
+                <p className="text-xs font-black uppercase text-amber-600 mb-2">
+                  🎨 Adornar con un emoticón de huellas:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {doodles.map((d, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedDoodle(d.char)}
+                      className={`w-10 h-10 border-2 border-black flex items-center justify-center text-lg rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.15)] hover:shadow-[3px_3px_0px_black] transition-all hover:-translate-y-0.5 cursor-pointer ${selectedDoodle === d.char ? 'bg-gradient-to-br from-emerald-100 to-emerald-300 border-4 scale-105' : 'bg-white hover:bg-gray-50'}`}
+                      title={d.label}
+                    >
+                      {d.char}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* DURABLE DATABASE WISHES BOX IN SPECTACULAR EMERALD COLORS */}
+      <section id="aliento-ed7" className="relative group">
+        <div className="absolute inset-0 bg-teal-100 translate-x-4 translate-y-4 -z-10 rounded-2xl border-4 border-dashed border-teal-400"></div>
+        <div className="bg-white border-[8px] border-black p-6 md:p-12 shadow-[15px_15px_0px_black] relative overflow-hidden rounded-2xl">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+            
+            {/* Input Form Column (2/5) */}
+            <div className="lg:col-span-2 space-y-6">
+              <span className="inline-block bg-emerald-500 text-white px-3 py-1 font-black uppercase text-xs transform -rotate-1 shadow-[3px_3px_0px_black] mb-2 font-mono">
+                💝 COMPARTÍ TU DESEO O ALIENACIÓN
+              </span>
+              
+              <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                EL ALMACÉN SOLIDARIO ANIMAL
+              </h2>
+              
+              <p className="text-xs font-bold text-gray-700 leading-relaxed bg-teal-50 border-2 border-black/10 p-3 rounded-lg">
+                ¿Qué mensaje protector le dejas a Cabral, al búho o a las mascotas del barrio? ¡Escribí felicitaciones, consejos de cuidado o abrazos solidarios! Se guardará para siempre en la base de datos conectada.
+              </p>
+
+              <form onSubmit={handleWishSubmit} className="space-y-4 bg-gray-50 p-6 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl relative">
+                <div className="space-y-1.5">
+                  <label htmlFor="animal-author-input" className="block text-xs font-black uppercase text-emerald-700 flex items-center gap-1">
+                    👤 Tu nombre o apodo vecinal:
+                  </label>
+                  <input
+                    id="animal-author-input"
+                    type="text"
+                    value={newWishAuthor}
+                    onChange={(e) => setNewWishAuthor(e.target.value)}
+                    placeholder="Ej. Mateo, Amigo de Cabral, Valentina..."
+                    className="w-full border-2 border-black p-2.5 text-xs font-bold focus:outline-none focus:bg-amber-50 uppercase rounded-md shadow-[2px_2px_0px_rgba(0,0,0,0.1)]"
+                    maxLength={40}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="animal-text-input" className="block text-xs font-black uppercase text-emerald-700">
+                    ✍️ Tu mensaje protector para las mascotas:
+                  </label>
+                  <textarea
+                    id="animal-text-input"
+                    value={newWishText}
+                    onChange={(e) => setNewWishText(e.target.value)}
+                    placeholder="¡Dejá tu granito de arena, pistas de avistaje de Cabral o buenos deseos!..."
+                    className="w-full border-2 border-black p-2.5 text-xs font-bold focus:outline-none focus:bg-amber-50 h-28 resize-none rounded-md shadow-[2px_2px_0px_rgba(0,0,0,0.1)]"
+                    maxLength={200}
+                  />
+                  <div className="text-right text-[10px] font-black text-gray-500">
+                    {newWishText.length}/200 CARACTERES
+                  </div>
+                </div>
+
+                {wishError && (
+                  <div className="bg-red-100 border-2 border-red-500 p-2 text-xs font-black text-red-700 text-center uppercase rounded">
+                    ⚠️ {wishError}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingWish}
+                  className="w-full bg-black hover:bg-gray-800 text-white border-4 border-black py-3 text-xs font-black uppercase transition-all shadow-[4px_4px_0px_#10b981] active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-center gap-2 rounded-md animate-pulse cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-spin" />
+                  <span>{isSubmittingWish ? "Guardando..." : "¡Mandar Deseo al Almacén!"}</span>
+                </button>
+
+                <p className="text-[10px] font-bold text-gray-500 leading-tight border-t border-black/10 pt-3">
+                  💡 Este buzón se conecta durablemente con la base de datos de El Dorrego. ¡Tus palabras vivirán en la nube para siempre!
+                </p>
+              </form>
+            </div>
+
+            {/* List Output Column (3/5) */}
+            <div className="lg:col-span-3 space-y-6">
+              <div className="flex border-b-4 border-black pb-2 items-center justify-between text-[#15803d]">
+                <span className="text-sm font-black uppercase tracking-tight text-emerald-600 flex items-center gap-1.5">
+                  ✨ MENSAJES RECIBIDOS EN LA NUBE ({wishes.length})
+                </span>
+                <span className="text-xs font-bold text-gray-400 font-mono">
+                  HISTORIAL EN NUBE
+                </span>
+              </div>
+
+              <div className="max-h-[580px] overflow-y-auto pr-2 space-y-4">
+                {wishes.length === 0 ? (
+                  <div className="border-4 border-dashed border-black/20 p-8 text-center uppercase font-black text-gray-400 bg-gray-50/50 rounded-xl animate-pulse">
+                    Conectando con el almacén forestal... ¡Escribí el primer mensaje!
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AnimatePresence>
+                      {wishes.map((wish, idx) => {
+                        const stickerColors = [
+                          "bg-emerald-100 border-emerald-300 shadow-emerald-200",
+                          "bg-stone-50 border-stone-200 shadow-stone-200",
+                          "bg-amber-100 border-amber-300 shadow-amber-200",
+                          "bg-teal-100 border-teal-200 shadow-teal-200",
+                          "bg-rose-100 border-rose-300 shadow-rose-200"
+                        ];
+                        const stickerColor = stickerColors[idx % stickerColors.length];
+                        const rotations = ["rotate-0", "rotate-1", "-rotate-1", "rotate-2", "-rotate-2"];
+                        const rotate = rotations[idx % rotations.length];
+
+                        return (
+                          <motion.div
+                            key={wish.id}
+                            initial={{ scale: 0.8, opacity: 0, y: 15 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className={`p-4 border-2 border-black rounded-lg ${stickerColor} ${rotate} flex flex-col justify-between min-h-[120px] shadow-[4px_4px_0px_rgba(0,0,0,0.15)] hover:shadow-[6px_6px_0px_black] hover:-translate-y-1 transition-all`}
+                          >
+                            <p className="text-xs font-bold leading-relaxed italic text-gray-950">
+                              "{wish.text}"
+                            </p>
+                            <div className="mt-2 pt-2 border-t border-black/10 flex justify-between items-center text-[10px] font-black uppercase">
+                              <span className="truncate text-emerald-800">👤 {wish.author}</span>
+                              <span className="opacity-60 text-[8px] text-gray-500 font-mono">
+                                {new Date(wish.date).toLocaleDateString("es-AR", {
+                                  day: "numeric",
+                                  month: "short"
+                                })}
+                              </span>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* LATEST ACTION REPORTS FROM THE CREATIVE WORKSHOPS - Custom to Animal care prep */}
+      <section id="talleres-ed7" className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white border-4 border-black p-6 md:p-8 shadow-[10px_10px_0px_black] rotate-[-0.5deg] rounded-2xl">
+        <h2 className="text-3xl font-black mb-4 uppercase flex items-center gap-2 justify-center md:justify-start drop-shadow-[2px_2px_0px_rgba(0,0,0,0.4)] text-amber-300">
+          🎁 MIENTRAS TANTO, NUESTRAS 3 FÁBRICAS SIGUEN AL 100% POR LOS ANIMALES DEL BARRIO
+        </h2>
+        
+        <p className="text-xs font-bold text-emerald-100 max-w-2xl mb-6">
+          Nuestros talleres comunitarios en el Alero Coronel Dorrego preparan elementos hermosos de cuidado, cobijo y afecto para cada una de nuestras mascotas de la zona.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-black">
+          <div className="bg-white p-5 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[9px] bg-emerald-500 text-white px-2 py-0.5 rounded uppercase font-black">Fábrica de Objetos</span>
+              <h4 className="text-lg font-black uppercase mt-2 text-indigo-950">Comederos de Vereda</h4>
+              <p className="text-xs font-bold text-gray-650 mt-2 leading-relaxed">
+                El taller modela comederos y bebederos de cerámica e impermeabilizante ecológico. Serán distribuidos en las puertas de los vecinos de Guadalupe Oeste para que las mascotas callejeras tengan siempre agua y comida fresca.
+              </p>
+            </div>
+            <div className="text-[10px] font-black text-emerald-500 border-t border-black/5 pt-3 mt-4">ESTADO: HORNEADOS Y LISTOS PARA SER DISTRIBUIDOS</div>
+          </div>
+
+          <div className="bg-white p-5 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[9px] bg-pink-500 text-white px-2 py-0.5 rounded uppercase font-black">Fábrica textil</span>
+              <h4 className="text-lg font-black uppercase mt-2 text-indigo-950">Abriguitos y Almohadones</h4>
+              <p className="text-xs font-bold text-gray-650 mt-2 leading-relaxed">
+                Nuestras vecinas y abuelas tejedoras cosen capas calentitas y pequeños nidos suaves utilizando lanas donadas y ropa en desuso. ¡Diseñados para abrigar a los perritos desprotegidos de la zona del frío helado de junio!
+              </p>
+            </div>
+            <div className="text-[10px] font-black text-pink-500 border-t border-black/5 pt-3 mt-4">ESTADO: 100% COSTURADO DE ABRIGOS COMPLETO</div>
+          </div>
+
+          <div className="bg-white p-5 border-4 border-black shadow-[4px_4px_0px_black] rounded-xl flex flex-col justify-between">
+            <div>
+              <span className="text-[9px] bg-amber-400 text-black px-2 py-0.5 rounded uppercase font-black">Fábrica de la Palabra</span>
+              <h4 className="text-lg font-black uppercase mt-2 text-indigo-950">Volantes y Guías de Cuidado</h4>
+              <p className="text-xs font-bold text-gray-650 mt-2 leading-relaxed">
+                Las infancias imprimen afiches con el rostro de Cabral y consejos cariñosos para dialogar con los pájaros autóctonos del patio de El Alero. Serán repartidos puerta a puerta para concientizar al vecindario.
+              </p>
+            </div>
+            <div className="text-[10px] font-black text-amber-500 border-t border-black/5 pt-3 mt-4">ESTADO: IMPRESIÓN COMPLETA DE CAMPAÑA</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stickers / Footer area */}
+      <div className="flex flex-wrap justify-center gap-6 py-8">
+        <div className="bg-emerald-500 text-white border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform rotate-12 hover:rotate-0 transition-transform cursor-pointer">
+          ¡CUIDAR A CABRAL! 🐾
+        </div>
+        <div className="bg-amber-400 text-black border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform -rotate-6 hover:rotate-0 transition-transform cursor-pointer font-mono">
+          EL ALERO 10 AÑOS 🎉
+        </div>
+        <div className="bg-white text-black border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform rotate-2 hover:rotate-0 transition-transform cursor-pointer font-mono">
+          HABLAR BAJITO AL BÚHO 🦉
+        </div>
+        <div className="bg-indigo-600 text-white border-4 border-black font-black px-6 py-2 shadow-[4px_4px_0px_black] transform rotate-6 hover:rotate-0 transition-transform cursor-pointer font-mono">
+          RED DE VECINOS PROTECTORES ✨
+        </div>
+      </div>
+
+      {/* Lightbox Modal for Fullscreen Poster view of Cabral Flyer */}
+      <AnimatePresence>
+        {isFullscreen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/95 z-50 flex flex-col justify-center items-center p-4 overflow-y-auto"
+            data-html2canvas-ignore="true"
+          >
+            {/* Topbar inside Fullscreen Modal */}
+            <div className="w-full max-w-4xl flex justify-between items-center text-white mb-2 pb-2 border-b border-white/20 font-mono">
+              <span className="font-black text-xs sm:text-sm tracking-widest text-amber-400 uppercase">
+                📢 CARTEL DE BÚSQUEDA DE CABRAL EN GUADALUPE OESTE
+              </span>
+              <button 
+                onClick={() => setIsFullscreen(false)}
+                className="bg-red-600 hover:bg-red-700 text-white font-black text-xs px-3 py-1.5 rounded border border-black active:translate-y-0.5 shadow-[2px_2px_0px_black] transition-all cursor-pointer"
+              >
+                CERRAR [X]
+              </button>
+            </div>
+
+            {/* Huge image fitting comfortably */}
+            <div className="relative max-w-4xl max-h-[85vh] overflow-hidden flex items-center justify-center">
+              <img 
+                src="https://i.postimg.cc/0yS6FLwd/1781301706888.png" 
+                alt="Aviso oficial de Cabral" 
+                className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl border-4 border-white/90"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  e.currentTarget.src = "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=1200";
+                }}
+              />
+            </div>
+
+            <div className="text-center text-xs mt-3 text-gray-400 font-mono">
+              Presioná CERRAR o haz click afuera para retornar al diario. Tel: <strong className="text-white">342 463-7120</strong>
+            </div>
+
+            {/* Click-outside helper */}
+            <div className="absolute inset-0 -z-10" onClick={() => setIsFullscreen(false)}></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

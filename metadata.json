@@ -2,5 +2,5 @@
   "name": "El Dorrego - Prensa Infantil - El Alero Santa Fe",
   "description": "Diario El Dorrego: Prensa Infantil del Barrio El Alero en Santa Fe. Espacio de comunicación y periodismo comunitario realizado por niños y niñas.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
