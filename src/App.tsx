@@ -1537,7 +1537,7 @@ export default function App() {
                   onClick={() => toggleEdition(7)}
                   className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 7 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
-                  Vol. 8
+                  Vol. 7
                 </button>
               </div>
             </div>

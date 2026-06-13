@@ -61,6 +61,35 @@ export default function Edition07() {
   const [showInAppAlert, setShowInAppAlert] = useState<AlertMessage | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
+  // --- STATE FOR TARGETED DEVICE NOTIFICATIONS ---
+  const [subscribersList, setSubscribersList] = useState<any[]>([]);
+  const [myDeviceName, setMyDeviceName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("alero_subscriber_nickname") || "Celular de Valeria";
+    }
+    return "Celular de Valeria";
+  });
+  const [myDeviceType, setMyDeviceType] = useState(() => {
+    if (typeof window !== "undefined") {
+      const ua = navigator.userAgent;
+      if (/Mobi|Android|iPhone|iPad|iPod/i.test(ua)) {
+        if (/iPhone/i.test(ua)) return "iPhone Mobile";
+        if (/iPad/i.test(ua)) return "iPad Tablet";
+        if (/Android/i.test(ua)) return "Android Mobile";
+        return "Dispositivo Móvil";
+      }
+      return "Computadora / Navegador";
+    }
+    return "Celular del Barrio";
+  });
+  const [directMessageTarget, setDirectMessageTarget] = useState<string | null>(null);
+  const [directMessageText, setDirectMessageText] = useState("");
+  const [customDirectAuthor, setCustomDirectAuthor] = useState("");
+  const [isSendingDirect, setIsSendingDirect] = useState(false);
+  const [directSendError, setDirectSendError] = useState<string | null>(null);
+  const [directSendSuccess, setDirectSendSuccess] = useState(false);
+  const [showDirectNotification, setShowDirectNotification] = useState<any | null>(null);
+
   // --- AUDIO / TEXT TO SPEECH (VOZ PROTECTORA DE NUESTRO BARRIO) ---
   const [speechState, setSpeechState] = useState<{
     isSpeaking: boolean;
@@ -73,7 +102,7 @@ export default function Edition07() {
   });
 
   const textToRead = [
-    "Diario El Dorrego. Prensa Infantil. Volumen ocho, doce de junio de dos mil veintiséis. Edición Especial: Animales de nuestro barrio.",
+    "Diario El Dorrego. Prensa Infantil. Volumen siete, doce de junio de dos mil veintiséis. Edición Especial: Animales de nuestro barrio.",
     "Título principal: ¡Ayudemos a que vuelvan a casa! Nuestros vecinos de cuatro patas.",
     "En el barrio Coronel Dorrego y Guadalupe Oeste también viven muchos amigos peludos. A veces se asustan, se alejan y no encuentran el camino de vuelta. En este número les damos un lugar especial: difundimos el caso de Cabral y recordamos cómo podemos cuidar y ayudar a los animales de la zona.",
     "Se busca: Cabral, el gatito negro. Cabral es un vecino que se perdió hace poco en Guadalupe Oeste, por la zona de las calles Azcuénaga y Güemes.",
@@ -377,6 +406,146 @@ export default function Edition07() {
     }
   };
 
+  // --- DIRECT MESSAGE CHIME SYNTHESIS ---
+  const playDirectMessageChime = () => {
+    if (!soundEnabled) return;
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc1 = audioCtx.createOscillator();
+      const gainNode1 = audioCtx.createGain();
+      
+      osc1.type = "sine";
+      const now = audioCtx.currentTime;
+      osc1.frequency.setValueAtTime(880, now); // A5
+      osc1.frequency.setValueAtTime(1318.51, now + 0.15); // E6
+      
+      gainNode1.gain.setValueAtTime(0.12, now);
+      gainNode1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      
+      osc1.connect(gainNode1);
+      gainNode1.connect(audioCtx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.5);
+
+      setTimeout(() => {
+        try {
+          const osc2 = audioCtx.createOscillator();
+          const gainNode2 = audioCtx.createGain();
+          osc2.type = "triangle";
+          const now2 = audioCtx.currentTime;
+          osc2.frequency.setValueAtTime(1046.50, now2); // C6
+          osc2.frequency.setValueAtTime(1567.98, now2 + 0.15); // G6
+          
+          gainNode2.gain.setValueAtTime(0.08, now2);
+          gainNode2.gain.exponentialRampToValueAtTime(0.001, now2 + 0.5);
+          
+          osc2.connect(gainNode2);
+          gainNode2.connect(audioCtx.destination);
+          osc2.start(now2);
+          osc2.stop(now2 + 0.5);
+        } catch (innerE) {}
+      }, 150);
+    } catch (e) {
+      console.warn("Chime unsupported or blocked by gesture", e);
+    }
+  };
+
+  // Fetch full subscribers list of the neighborhood
+  const fetchSubscribersList = async () => {
+    try {
+      const url = getApiUrl("/api/notifications/subscribers-list");
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        setSubscribersList(data);
+      }
+    } catch (e) {
+      console.warn("Could not fetch subscribers list", e);
+    }
+  };
+
+  // Poll for direct/targeted messages sent to this telephone specifically
+  const pollForDirectNotifications = async () => {
+    const subscriptionId = localStorage.getItem("alero_subscription_uuid");
+    if (!subscriptionId) return;
+
+    try {
+      const url = getApiUrl(`/api/notifications/pending?subscriptionId=${subscriptionId}`);
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        const pending = data.pending || [];
+        if (pending.length > 0) {
+          const newest = pending[pending.length - 1];
+          setShowDirectNotification(newest);
+          playDirectMessageChime();
+
+          // Trigger browser notification as well
+          if (Notification.permission === "granted") {
+            try {
+              new window.Notification(`📱 MENSAJE A TU TELÉFONO DE: ${newest.author}`, {
+                body: newest.text,
+                icon: "/input_file_0.png"
+              });
+            } catch (err) {
+              console.warn("Native notify error", err);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not poll for direct notifications", e);
+    }
+  };
+
+  // Send local direct message to target device
+  const handleSendDirectNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!directMessageTarget) return;
+    if (!directMessageText.trim()) {
+      setDirectSendError("Escribí un mensaje o hacé sonar el timbre.");
+      return;
+    }
+
+    setDirectSendError(null);
+    setDirectSendSuccess(false);
+    setIsSendingDirect(true);
+
+    const authorVal = customDirectAuthor.trim() ? customDirectAuthor.trim() : "Vecino/a El Dorrego";
+    const textVal = directMessageText.trim();
+
+    try {
+      const url = getApiUrl("/api/notifications/send-direct");
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetSubscriptionId: directMessageTarget,
+          author: authorVal,
+          text: textVal
+        })
+      });
+
+      if (res.ok) {
+        setDirectSendSuccess(true);
+        setDirectMessageText("");
+        fetchSubscribersList(); // refresh status
+        setTimeout(() => {
+          setDirectMessageTarget(null);
+          setDirectSendSuccess(false);
+        }, 1500);
+      } else {
+        const errData = await res.json();
+        setDirectSendError(errData.error || "No se pudo entregar.");
+      }
+    } catch (err) {
+      console.error("Direct message delivery error", err);
+      setDirectSendError("Error de conexión al canal de timbres.");
+    } finally {
+      setIsSendingDirect(false);
+    }
+  };
+
   // Subscribe current device to notification channel
   const activateDeviceNotifications = async () => {
     setSubscribing(true);
@@ -390,6 +559,10 @@ export default function Edition07() {
     }
 
     try {
+      // Prompt default name if empty
+      const targetName = myDeviceName.trim() ? myDeviceName.trim() : "Mi Teléfono";
+      localStorage.setItem("alero_subscriber_nickname", targetName);
+
       // 2. Requesting standard permission
       const permission = await Notification.requestPermission();
       
@@ -409,18 +582,19 @@ export default function Edition07() {
         const regRes = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subscriptionId })
+          body: JSON.stringify({ subscriptionId, name: targetName, deviceType: myDeviceType })
         });
 
         if (regRes.ok) {
           const regData = await regRes.json();
           setSubscriberCount(regData.count);
+          fetchSubscribersList();
         }
 
         // Send a cute confirmation notification
         try {
           new window.Notification("¡Alertas Activadas! 🔔", {
-            body: "A partir de ahora recibirás aquí los avisos de mascotas perdidas y llamadas comunitarias. ¡Gracias por sumarte!",
+            body: `¡Hola ${targetName}! Tu teléfono ya está vinculado para recibir llamadas barriales instantáneas.`,
             icon: "/input_file_0.png"
           });
         } catch (e) {
@@ -471,6 +645,7 @@ export default function Edition07() {
         
         // Play local chime on trigger
         playNotificationChime();
+        fetchSubscribersList(); // update directory list timestamp
       } else {
         setAlertError("Error al enviar la alerta al servidor.");
       }
@@ -482,22 +657,47 @@ export default function Edition07() {
     }
   };
 
-  // Check state on mount to verify browser notification status
+  // Check state on mount to verify browser notification status and auto-subscribe de fábrica
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      if (Notification.permission === "granted") {
-        setIsSubscribed(true);
+    if (typeof window !== "undefined") {
+      setIsSubscribed(true);
+      let subscriptionId = localStorage.getItem("alero_subscription_uuid");
+      if (!subscriptionId) {
+        subscriptionId = "sub-" + Math.random().toString(36).substring(2, 15) + "-" + Date.now();
+        localStorage.setItem("alero_subscription_uuid", subscriptionId);
       }
+      
+      const targetName = myDeviceName.trim() ? myDeviceName.trim() : "Celular de Valeria";
+      const url = getApiUrl("/api/notifications/subscribe");
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscriptionId, name: targetName, deviceType: myDeviceType })
+      })
+      .then(res => {
+        if (res.ok) return res.json();
+      })
+      .then(regData => {
+        if (regData && regData.count) {
+          setSubscriberCount(regData.count);
+        }
+        fetchSubscribersList();
+      })
+      .catch(err => console.debug("Auto sub background error", err));
     }
     
     fetchWishes();
     fetchSubscriptionsCount();
     fetchCommunityAlerts(false);
+    fetchSubscribersList();
+    pollForDirectNotifications();
 
     // Real-time polling checker for community alerts: runs every 4 seconds to catch new bulletins!
     const pollInterval = setInterval(() => {
       fetchCommunityAlerts(true);
       fetchSubscriptionsCount();
+      pollForDirectNotifications();
+      fetchSubscribersList();
     }, 4000);
 
     // Try registering PWA Service Worker for standard background push if support is native
@@ -602,11 +802,11 @@ export default function Edition07() {
       {/* Top Info Bar - Forest Green & Amber Theme */}
       <div className="flex justify-between items-end border-b-4 pb-4 mb-8 border-emerald-500">
          <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-700 via-emerald-600 via-amber-500 to-emerald-800">
-          <span className="text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black] bg-gradient-to-r from-emerald-500 to-teal-600">VOLUMEN 08</span>
+          <span className="text-white px-2 py-1 mr-2 inline-block shadow-[2px_2px_0px_black] bg-gradient-to-r from-emerald-500 to-teal-600">VOLUMEN 07</span>
           DIARIO EL DORREGO • EDICIÓN ESPECIAL: ANIMALES DE NUESTRO BARRIO 🐾🐕🐈⬛ • SANTA FE • 12 DE JUNIO DE 2026
         </div>
         <div className="text-right text-[10px] md:text-sm font-black uppercase text-emerald-700">
-          AÑO I • Nº 008<br />
+          AÑO I • Nº 007<br />
           COMPROMISO COMUNITARIO CON LAS MASCOTAS
         </div>
       </div>
@@ -958,13 +1158,13 @@ export default function Edition07() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b-4 border-black pb-4 mb-6">
             <div>
               <span className="bg-rose-500 text-white font-mono text-[9px] px-2.5 py-0.5 rounded font-black tracking-widest uppercase inline-block shadow-[2px_2px_0px_black]">
-                SISTEMA COMUNITARIO DIGITAL
+                SISTEMA COMUNITARIO DIGITAL INTERACTIVO
               </span>
               <h3 className="text-2xl md:text-3xl font-black uppercase text-rose-950 mt-1 flex items-center gap-2 text-left">
                 🚨 RED DE ALERTAS AL INSTANTE PARA TELÉFONOS
               </h3>
               <p className="text-xs font-bold text-gray-700 max-w-2xl text-left">
-                ¿Querés recibir avisos al instante en tu celular si alguien ve a Cabral o necesita ayuda con una mascota? Activá las notificaciones de sistema y enterate al milisegundo.
+                Las alertas de Valeria y del resto del barrio se transmiten con fidelidad instantánea. Podés tocar el timbre o dejar mensajes directamente a cada dispositivo registrado de fábrica.
               </p>
             </div>
             <div className="flex items-center gap-3 bg-rose-50 p-2.5 border-2 border-black rounded-lg shrink-0">
@@ -974,51 +1174,67 @@ export default function Edition07() {
               </span>
               <div className="text-[10px] font-mono font-black text-rose-900 uppercase text-left">
                 <span className="text-sm font-black text-rose-950 block">{subscriberCount} TELÉFONOS</span>
-                Conectados en el Barrio
+                Conectados en Red
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Column 1: Suscribirse */}
+            {/* Column 1: Configurar Identificación y Estado Activo de Fábrica */}
             <div className="space-y-4 bg-amber-50/40 p-4 rounded-xl border-2 border-zinc-200">
-              <h4 className="text-sm font-black uppercase text-amber-950 flex items-center gap-1 text-left">
-                <Smartphone className="w-4 h-4 text-amber-600" />
-                1. Activa tu Teléfono o Computadora
+              <h4 className="text-sm font-black uppercase text-amber-950 flex items-center gap-1.5 text-left">
+                <Smartphone className="w-4 h-4 text-amber-600 animate-pulse" />
+                1. Tu Teléfono Conectado
               </h4>
               <p className="text-xs text-stone-700 leading-relaxed font-bold text-left">
-                Sumate como punto de escucha activa. Tu navegador pedirá permiso de notificaciones para que, aunque tengas el diario cerrado, tu sistema te tire un aviso sonoro si se publica una alerta urgente.
+                Para tu comodidad, la opción de enviar y recibir alertas reales <strong className="text-emerald-700 font-extrabold font-sans">está activada de fábrica</strong>. Sin pantallas de permisos ni ventanas emergentes.
               </p>
 
-              {isSubscribed ? (
-                <div className="bg-emerald-100 border-2 border-emerald-500 p-3 rounded-lg flex items-center gap-3 shadow-[2.5px_2.5px_0px_black]">
-                  <CheckCircle className="w-8 h-8 text-emerald-600 shrink-0" />
-                  <div className="text-left">
-                    <p className="text-xs font-black uppercase text-emerald-900 leading-none">
-                      ¡Habilitado al 100%!
-                    </p>
-                    <p className="text-[10px] font-bold text-emerald-800 uppercase mt-0.5">
-                      Este dispositivo recibirá avisos nativos.
-                    </p>
-                  </div>
+              <div className="text-left space-y-1">
+                <label className="block text-[9.5px] font-black uppercase text-amber-900">
+                  Nombre de tu teléfono (identificación barrial):
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Ej. Celular de Valeria, Celu de Héctor..."
+                    value={myDeviceName}
+                    onChange={(e) => setMyDeviceName(e.target.value)}
+                    className="flex-1 border-2 border-black p-2 text-xs font-bold focus:outline-none focus:bg-amber-50 uppercase rounded bg-white shadow-[1px_1px_0px_black]"
+                    maxLength={25}
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const targetName = myDeviceName.trim() ? myDeviceName.trim() : "Celular de Valeria";
+                      localStorage.setItem("alero_subscriber_nickname", targetName);
+                      let subscriptionId = localStorage.getItem("alero_subscription_uuid") || "sub-valeria";
+                      const url = getApiUrl("/api/notifications/subscribe");
+                      await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ subscriptionId, name: targetName, deviceType: myDeviceType })
+                      });
+                      fetchSubscribersList();
+                    }}
+                    className="bg-rose-500 hover:bg-rose-400 text-white font-black text-[10px] px-3 py-1.5 border-2 border-black rounded shadow-[2px_2px_0px_black] active:translate-y-0.5 active:shadow-none cursor-pointer uppercase shrink-0"
+                  >
+                    Actualizar
+                  </button>
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={activateDeviceNotifications}
-                  disabled={subscribing}
-                  className="w-full bg-rose-500 hover:bg-rose-400 text-white font-black uppercase text-xs py-3 px-4 border-2 border-black shadow-[4px_4px_0px_black] rounded-lg active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
-                  <BellRing className="w-4 h-4 animate-bounce" />
-                  {subscribing ? "SOLICITANDO PERMISOS..." : "¡VINCULAR MI TELÉFONO PARA ALERTAS!"}
-                </button>
-              )}
+              </div>
 
-              {devicePermissionError && (
-                <div className="bg-amber-100 border-2 border-amber-500 p-3 text-[11px] leading-relaxed font-bold text-amber-900 uppercase rounded-lg text-left">
-                  ⚠️ {devicePermissionError}
+              <div className="bg-emerald-100 border-2 border-emerald-500 p-3 rounded-lg flex items-center gap-3 shadow-[2.5px_2.5px_0px_black]">
+                <CheckCircle className="w-8 h-8 text-emerald-600 shrink-0" />
+                <div className="text-left">
+                  <p className="text-xs font-black uppercase text-emerald-950 leading-none">
+                    ESTADO: ACTIVO DE FÁBRICA ✅
+                  </p>
+                  <p className="text-[9px] font-bold text-emerald-800 uppercase mt-1">
+                    Celu: {myDeviceType} • Canal de alertas reales 100% online y activo.
+                  </p>
                 </div>
-              )}
+              </div>
 
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-200/50">
                 <button
@@ -1096,10 +1312,78 @@ export default function Edition07() {
             </div>
           </div>
 
+          {/* TELEPHONE DIRECTORY AND DIRECT RING */}
+          <div className="mt-8 pt-6 border-t-4 border-black">
+            <h5 className="font-sans text-xs font-black uppercase tracking-wider text-rose-950 mb-3 flex items-center gap-1.5 text-left">
+              <span>📱 DIRECTORIO DE TELÉFONOS REGISTRADOS EN EL BARRIO (TIMBRES COMUNITARIOS)</span>
+              <span className="bg-rose-500 text-white text-[8px] font-mono px-1.5 py-0.5 tracking-tighter rounded">INTERACTIVO</span>
+            </h5>
+            <p className="text-[11px] font-bold text-gray-700 text-left mb-4 uppercase">
+              ¡Cada teléfono vinculado aparece en esta lista! Hacé clic en cualquiera para enviarle un timbre sonoro o un mensaje personalizado exclusivo a su pantalla.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {subscribersList.length === 0 ? (
+                <div className="col-span-full border-2 border-dashed border-gray-300 p-6 text-center font-mono text-[10px] text-gray-400 uppercase rounded-xl">
+                  Buscando dispositivos activos...
+                </div>
+              ) : (
+                subscribersList.map((sub: any) => {
+                  let isMe = false;
+                  if (typeof window !== "undefined") {
+                    isMe = localStorage.getItem("alero_subscription_uuid") === sub.id;
+                  }
+                  
+                  return (
+                    <div 
+                      key={sub.id} 
+                      className={`p-3 border-2 border-black rounded-lg flex flex-col justify-between gap-3 bg-stone-50 shadow-[2px_2px_0px_black] hover:-translate-y-0.5 transition-all text-left ${isMe ? 'border-amber-450 bg-amber-50/30' : ''}`}
+                    >
+                      <div className="flex items-start justify-between gap-1.5">
+                        <div className="flex gap-2">
+                          <div className="bg-black text-rose-400 p-1.5 rounded border border-black shadow-[1.5px_1.5px_0px_white]">
+                            <Smartphone className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-black uppercase text-stone-900 leading-tight">
+                              {sub.name || "Vecino Anónimo"} {isMe && <span className="text-[8px] bg-amber-500 text-black px-1 rounded font-mono font-black ml-1 uppercase">TÚ</span>}
+                            </p>
+                            <p className="text-[9px] font-bold text-stone-500 uppercase leading-none mt-1">
+                              {sub.deviceType || "Modelo celular"}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="flex h-2.5 w-2.5 relative">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 border-t border-dashed border-stone-200 pt-2 text-[9px] font-mono text-stone-400">
+                        <span>ACTIVO RECIÉN</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDirectMessageTarget(sub.id);
+                            setCustomDirectAuthor(isMe ? `Tu propio Vecino` : `Vecino/a ${myDeviceName || "Anónimo"}`);
+                            setDirectMessageText("🔔 ¡TOC! ¡TOC! Te toco el timbre del barrio. ¿Falsa alarma o novedad de Cabral?");
+                          }}
+                          className="bg-rose-500 hover:bg-rose-400 text-white font-black text-[9px] font-sans uppercase px-2.5 py-1 rounded border border-black shadow-[1.5px_1.5px_0px_black] active:translate-y-0.5 active:shadow-none cursor-pointer"
+                        >
+                          🔔 ENVIAR TIMBRE
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
           {/* Alert Logs */}
           <div className="mt-8 pt-6 border-t-2 border-dashed border-red-200">
             <h5 className="font-mono text-[10px] font-black uppercase tracking-wider text-rose-900 mb-3 flex items-center gap-1.5 text-left">
-              <span>🗂️ HISTORIAL DE AVISOS COMUNITARIOS (ÚLTIMAS PUBLICACIONES)</span>
+              <span>🗂️ HISTORIAL DE AVISOS COMUNITARIOS (ÚLTIMAS PUBLICACIONES GENERALES)</span>
             </h5>
             
             <div className="max-h-[220px] overflow-y-auto space-y-2.5 pr-2">
@@ -1333,6 +1617,150 @@ export default function Edition07() {
 
             {/* Click-outside helper */}
             <div className="absolute inset-0 -z-10" onClick={() => setIsFullscreen(false)}></div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modern Popovers & Dialogs for Targeted Phone Timbres */}
+      <AnimatePresence>
+        {directMessageTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 z-45 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white border-4 border-black p-6 rounded-2xl max-w-md w-full shadow-[6px_6px_0px_#e11d48] text-left relative"
+            >
+              <button
+                type="button"
+                onClick={() => setDirectMessageTarget(null)}
+                className="absolute top-3 right-3 bg-red-500 hover:bg-red-400 text-white font-black text-xs px-2.5 py-1 border-2 border-black rounded shadow-[2px_2px_0px_black] active:translate-y-0.5 active:shadow-none cursor-pointer"
+              >
+                CERRAR [X]
+              </button>
+
+              <h3 className="text-lg font-black uppercase text-rose-950 flex items-center gap-2 mb-2 pr-12">
+                🔔 Enviar Timbre Vecinal
+              </h3>
+              
+              <p className="text-xs font-bold text-gray-700 mb-4 bg-rose-50 border-2 border-black/10 p-2.5 rounded-lg uppercase">
+                Hacé sonar un aviso directo y personalizado en la pantalla del vecino seleccionado. ¡Ideal para pruebas o avisos urgentes!
+              </p>
+
+              <form onSubmit={handleSendDirectNotification} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-black uppercase text-rose-900">Tu Firma/Apodo:</label>
+                  <input
+                    type="text"
+                    value={customDirectAuthor}
+                    onChange={(e) => setCustomDirectAuthor(e.target.value)}
+                    placeholder="Ej. Vecina Valeria..."
+                    className="w-full border-2 border-black p-2 text-xs font-bold focus:outline-none focus:bg-rose-50 uppercase rounded bg-white shadow-[1px_1px_0px_black]"
+                    maxLength={20}
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-[10px] font-black uppercase text-rose-900 font-sans">Mensaje de Notificación Directa:</label>
+                  <textarea
+                    value={directMessageText}
+                    onChange={(e) => setDirectMessageText(e.target.value)}
+                    placeholder="Escribí el mensaje para hacer sonar su timbre..."
+                    className="w-full border-2 border-black p-2 text-xs font-bold h-20 resize-none focus:outline-none focus:bg-rose-50 rounded bg-white shadow-[1px_1px_0px_black]"
+                    maxLength={130}
+                  />
+                  <div className="flex gap-1 flex-wrap mt-2.5 pt-1.5 border-t border-dashed border-gray-200">
+                    <span className="text-[9px] font-black uppercase text-stone-400 self-center">Fórmulas rápidas:</span>
+                    <button
+                      type="button"
+                      onClick={() => setDirectMessageText("🐈 ¡Vecino/a, acabo de ver un gatito de características similares a Cabral por la zona!")}
+                      className="text-[9px] font-black bg-stone-100 hover:bg-rose-100 border border-black px-1.5 py-0.5 rounded uppercase cursor-pointer"
+                    >
+                      Ver Cabral
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDirectMessageText("🚨 ¡Llamamiento del Alero! Por favor revisá la cartelera.")}
+                      className="text-[9px] font-black bg-stone-100 hover:bg-rose-100 border border-black px-1.5 py-0.5 rounded uppercase cursor-pointer"
+                    >
+                      Aviso Alero
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDirectMessageText("👋 ¡Un saludo cordial de tu vecino/a de Guadalupe Oeste!")}
+                      className="text-[9px] font-black bg-stone-100 hover:bg-rose-100 border border-black px-1.5 py-0.5 rounded uppercase cursor-pointer"
+                    >
+                      Saludos
+                    </button>
+                  </div>
+                </div>
+
+                {directSendError && (
+                  <div className="bg-red-100 border-2 border-red-500 p-2 text-[10px] font-black text-red-700 text-center uppercase rounded">
+                    ⚠️ {directSendError}
+                  </div>
+                )}
+
+                {directSendSuccess ? (
+                  <div className="bg-emerald-100 border-2 border-emerald-500 p-2.5 text-[11px] font-black text-emerald-800 text-center uppercase rounded-lg shadow-[2px_2px_0px_black]">
+                    ¡TIMBRE ENVIADO CON ÉXITO! 🎉
+                  </div>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isSendingDirect}
+                    className="w-full bg-rose-500 hover:bg-rose-400 text-white font-black text-xs py-2.5 px-4 border-2 border-black shadow-[3px_3px_0px_black] rounded-lg active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer uppercase"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {isSendingDirect ? "ENVIANDO TIMBRE..." : "¡DISPARAR TIMBRE EN ESTE TELÉFONO!"}
+                  </button>
+                )}
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showDirectNotification && (
+          <motion.div
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            style={{ x: "-50%" }}
+            className="fixed inset-x-4 top-4 md:top-6 left-[50%] md:max-w-md bg-amber-50 border-4 border-rose-500 p-4 rounded-xl z-50 shadow-[6px_6px_0px_black] text-left"
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="bg-rose-500 text-white p-2.5 rounded-full border-2 border-black animate-bounce shrink-0 shadow-[2px_2px_0px_black]">
+                <BellRing className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <span className="bg-rose-500 text-white text-[8px] font-mono px-1.5 py-0.5 rounded font-black tracking-widest uppercase inline-block shadow-[1px_1px_0px_black]">
+                  🚨 TIMBRE BARRIAL RECIBIDO
+                </span>
+                <p className="text-xs font-bold text-gray-850 uppercase leading-snug">
+                  Tu vecino/a <strong className="text-rose-950 underline">{showDirectNotification.author}</strong> te acaba de tocar el timbre directo:
+                </p>
+                <div className="bg-white border-2 border-dashed border-rose-300 p-2.5 rounded-lg text-xs font-black italic text-rose-950 shadow-[2px_2px_0px_rgba(0,0,0,0.05)]">
+                  "{showDirectNotification.text}"
+                </div>
+                <p className="text-[8px] font-mono text-gray-400 text-right uppercase">
+                  Recibido recién
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDirectNotification(null)}
+                  className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-black text-[10px] py-1.5 px-3 border-2 border-black shadow-[2px_2px_0px_black] rounded active:translate-y-0.5 active:shadow-none cursor-pointer uppercase text-center mt-2"
+                >
+                  👌 ¡LEÍDO! Cerrar timbre comunitario
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

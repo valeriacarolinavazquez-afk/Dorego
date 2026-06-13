@@ -101,8 +101,30 @@ async function startServer() {
     }
     // Default initial mock subscription to make the count non-zero initially for aesthetics
     return [
-      { id: "sub-129381-x", date: "2026-06-12T10:00:00Z" },
-      { id: "sub-984712-l", date: "2026-06-12T12:30:00Z" }
+      { 
+        id: "sub-129381-x", 
+        name: "Celular de Luis (Guadalupe Oeste)", 
+        deviceType: "Motorola G82 • Android", 
+        date: "2026-06-12T10:00:00Z",
+        lastActive: "2026-06-12T10:00:00Z",
+        pendingDirectAlerts: []
+      },
+      { 
+        id: "sub-984712-l", 
+        name: "Tablet de María (Las Flores)", 
+        deviceType: "iPad Pro • iOS", 
+        date: "2026-06-12T12:30:00Z",
+        lastActive: "2026-06-12T12:30:00Z",
+        pendingDirectAlerts: []
+      },
+      {
+        id: "sub-641929-w",
+        name: "Celular de Héctor (Alero)",
+        deviceType: "Samsung Galaxy • Android",
+        date: "2026-06-13T14:30:00Z",
+        lastActive: "2026-06-13T16:00:00Z",
+        pendingDirectAlerts: []
+      }
     ];
   }
 
@@ -157,22 +179,96 @@ async function startServer() {
     res.json({ count: subs.length });
   });
 
-  // POST subscribe
+  // GET full subscribers list (for directory)
+  app.get("/api/notifications/subscribers-list", (req, res) => {
+    res.json(getSubscribers());
+  });
+
+  // POST subscribe - registers device + custom name + device model/type info
   app.post("/api/notifications/subscribe", (req, res) => {
-    const { subscriptionId } = req.body;
+    const { subscriptionId, name, deviceType } = req.body;
     if (!subscriptionId) {
       return res.status(400).json({ error: "Falta subscriptionId en la petición" });
     }
     const subs = getSubscribers();
-    const alreadyExists = subs.some((s: any) => s.id === subscriptionId);
-    if (!alreadyExists) {
+    const existingIndex = subs.findIndex((s: any) => s.id === subscriptionId);
+    
+    const formattedName = name && name.trim() ? name.trim() : `Dispositivo Vecino (${Math.random().toString(36).substring(2, 6).toUpperCase()})`;
+    const formattedDevice = deviceType && deviceType.trim() ? deviceType.trim() : "Navegador Web / Celular";
+
+    if (existingIndex === -1) {
       subs.push({
         id: subscriptionId,
-        date: new Date().toISOString()
+        name: formattedName,
+        deviceType: formattedDevice,
+        date: new Date().toISOString(),
+        lastActive: new Date().toISOString(),
+        pendingDirectAlerts: []
       });
-      saveSubscribers(subs);
+    } else {
+      // Update existing device info
+      subs[existingIndex].name = formattedName;
+      subs[existingIndex].deviceType = formattedDevice;
+      subs[existingIndex].lastActive = new Date().toISOString();
     }
-    res.json({ success: true, count: subs.length });
+    
+    saveSubscribers(subs);
+    res.json({ success: true, count: subs.length, subscriber: subs.find((s: any) => s.id === subscriptionId) });
+  });
+
+  // GET direct pending alerts for a specific subscriber (clears them from queue on retrieve)
+  app.get("/api/notifications/pending", (req, res) => {
+    const { subscriptionId } = req.query;
+    if (!subscriptionId) {
+      return res.status(400).json({ error: "Falta subscriptionId" });
+    }
+    const subs = getSubscribers();
+    const subIndex = subs.findIndex((s: any) => s.id === subscriptionId);
+    if (subIndex === -1) {
+      return res.json({ pending: [] });
+    }
+
+    const pending = subs[subIndex].pendingDirectAlerts || [];
+    // Clear and save list
+    subs[subIndex].pendingDirectAlerts = [];
+    subs[subIndex].lastActive = new Date().toISOString();
+    saveSubscribers(subs);
+
+    res.json({ pending });
+  });
+
+  // POST send a direct notification targeted to a specific phone
+  app.post("/api/notifications/send-direct", (req, res) => {
+    const { targetSubscriptionId, author, text } = req.body;
+    if (!targetSubscriptionId) {
+      return res.status(400).json({ error: "Falta targetSubscriptionId en la petición" });
+    }
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: "El cuerpo de la notificación no puede estar vacío" });
+    }
+
+    const subs = getSubscribers();
+    const subIndex = subs.findIndex((s: any) => s.id === targetSubscriptionId);
+    
+    if (subIndex === -1) {
+      return res.status(404).json({ error: "Dispositivo o teléfono no encontrado en el barrio." });
+    }
+
+    if (!subs[subIndex].pendingDirectAlerts) {
+      subs[subIndex].pendingDirectAlerts = [];
+    }
+
+    const newDirectNotification = {
+      id: Date.now(),
+      author: author && author.trim() ? author.trim() : "Vecino/a Anónimo",
+      text: text.trim(),
+      date: new Date().toISOString()
+    };
+
+    subs[subIndex].pendingDirectAlerts.push(newDirectNotification);
+    saveSubscribers(subs);
+
+    res.json({ success: true, message: "Notificación directa encolada con éxito!" });
   });
 
   // GET alerts
