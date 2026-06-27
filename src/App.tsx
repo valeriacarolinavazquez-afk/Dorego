@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Edition07 from "./components/Edition07";
+import Edition08 from "./components/Edition08";
 import { 
   Menu,
   X,
@@ -1133,9 +1134,9 @@ export default function App() {
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
-      return saved ? parseInt(saved) : 7;
+      return saved ? parseInt(saved) : 8;
     }
-    return 7;
+    return 8;
   });
 
   useEffect(() => {
@@ -1539,6 +1540,12 @@ export default function App() {
                 >
                   Vol. 7
                 </button>
+                <button 
+                  onClick={() => toggleEdition(8)}
+                  className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 8 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
+                >
+                  Vol. 8
+                </button>
               </div>
             </div>
 
@@ -1592,6 +1599,12 @@ export default function App() {
                   <a href="#buzon-ed7" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-cyan-400 transition-colors border-b border-white/10 pb-1">✍️ Buzón Solidario</a>
                 </>
               )}
+              {edition === 8 && (
+                <>
+                  <a href="#inicio-ed8" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-amber-400 transition-colors border-b border-white/10 pb-1 text-amber-300 animate-pulse">🎂 Portada Especial</a>
+                  <a href="#buzon-ed8" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-rose-400 transition-colors border-b border-white/10 pb-1">✍️ Mural de Deseos</a>
+                </>
+              )}
             </nav>
           </motion.div>
         )}
@@ -1612,6 +1625,7 @@ export default function App() {
           {edition === 5 && <Edition05 />}
           {edition === 6 && <Edition06 />}
           {edition === 7 && <Edition07 />}
+          {edition === 8 && <Edition08 />}
         </div>
 
         {/* Centro de Descarga de PDF / Guardado */}
