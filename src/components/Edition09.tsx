@@ -804,91 +804,111 @@ export default function Edition09() {
               UN AÑO EN UNA CAJITA 📦
             </p>
             
-            <div className="text-xs font-bold leading-relaxed space-y-4 text-justify">
-              <p>
-                Para abrir camino al juego, la entrada te recibía con una rayuela pintada para saltar. Además, se entregaron las cajitas especiales que se armaron durante todo el año.
-              </p>
-              <p>
-                Este mágico cofre barrial contenía elementos sencillos pero repletos de vida y juegos para divertirse en familia.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+              <div className="md:col-span-7 space-y-4">
+                <div className="text-xs font-bold leading-relaxed space-y-4 text-justify">
+                  <p>
+                    Para abrir camino al juego, la entrada te recibía con una rayuela pintada para saltar. Además, se entregaron las cajitas especiales que se armaron durante todo el año.
+                  </p>
+                  <p>
+                    Este mágico cofre barrial contenía elementos sencillos pero repletos de vida y juegos para divertirse en familia.
+                  </p>
+                </div>
 
-            {/* Interactive Rayuela Caja */}
-            <div className="border-4 border-black p-4 bg-sky-50 rounded-3xl shadow-[5px_5px_0px_black] text-center space-y-4 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 bg-sky-400 border-b-2 border-l-2 border-black text-[7px] font-black uppercase px-2 py-0.5 rounded-bl">
-                Cofre del Año
+                {/* Interactive Rayuela Caja */}
+                <div className="border-4 border-black p-4 bg-sky-50 rounded-3xl shadow-[5px_5px_0px_black] text-center space-y-4 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 bg-sky-400 border-b-2 border-l-2 border-black text-[7px] font-black uppercase px-2 py-0.5 rounded-bl">
+                    Cofre del Año
+                  </div>
+
+                  {!isCajitaOpen ? (
+                    <div className="py-4 space-y-3">
+                      <div className="w-20 h-20 bg-amber-100 border-4 border-black rounded-2xl mx-auto flex items-center justify-center shadow-[3px_3px_0px_black] group-hover:scale-105 transition-transform">
+                        <span className="text-4xl animate-bounce">📦</span>
+                      </div>
+                      <h4 className="font-black text-xs uppercase leading-none text-sky-950">¡Abrí tu cajita especial!</h4>
+                      <p className="text-[9px] text-stone-600 max-w-[200px] mx-auto uppercase">
+                        Descubrí qué tiza y qué instrucciones de juego te tocaron de regalo.
+                      </p>
+                      <button
+                        onClick={openRayuelaCajita}
+                        className="bg-sky-500 hover:bg-sky-400 text-white font-black text-[10px] px-4 py-2 border-2 border-black shadow-[2.5px_2.5px_0px_black] uppercase tracking-wider rounded active:translate-y-0.5 active:shadow-none cursor-pointer"
+                      >
+                        🔓 ¡Abrir Cajita!
+                      </button>
+                    </div>
+                  ) : (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="space-y-4 text-left"
+                    >
+                      <div className="flex items-center justify-between border-b border-black/10 pb-2">
+                        <span className="text-[10px] font-black uppercase text-emerald-600 flex items-center gap-1 animate-pulse">
+                          ✨ ¡Cajita Abierta!
+                        </span>
+                        <button 
+                          onClick={() => setIsCajitaOpen(false)}
+                          className="text-[9px] font-mono hover:underline uppercase font-bold text-rose-500 cursor-pointer"
+                        >
+                          Cerrar
+                        </button>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        {/* Tiza color */}
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-stone-700">🖍️ TIZA ESPECIAL:</span>
+                          <span className={`font-mono text-[9px] px-2 py-0.5 rounded border border-black/20 font-black uppercase ${cajitaContent?.tizaColor}`}>
+                            {cajitaContent?.tizaName}
+                          </span>
+                        </div>
+
+                        {/* Madera */}
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-stone-700">🪵 MADERITA PARA TIRAR:</span>
+                          <span className="font-mono text-[10px] bg-amber-100 text-amber-950 px-2 py-0.5 rounded border border-black/20 font-black">
+                            Bloque Nº {cajitaContent?.maderaNum}
+                          </span>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="border-2 border-dashed border-black/30 p-2.5 rounded-xl bg-white space-y-1.5 mt-2">
+                          <span className="text-[8px] font-mono font-black uppercase text-stone-400 block">
+                            📜 Instrucción inspirada en la vida:
+                          </span>
+                          <p className="text-[11px] font-bold text-stone-800 leading-tight italic">
+                            "{cajitaContent?.instruccion}"
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={openRayuelaCajita}
+                        className="w-full bg-white hover:bg-stone-50 text-stone-800 font-black text-[9px] py-1.5 border-2 border-black shadow-[1.5px_1.5px_0px_black] uppercase text-center rounded active:translate-y-0.5 active:shadow-none cursor-pointer"
+                      >
+                        🎲 Obtener otra combinación
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
               </div>
 
-              {!isCajitaOpen ? (
-                <div className="py-4 space-y-3">
-                  <div className="w-20 h-20 bg-amber-100 border-4 border-black rounded-2xl mx-auto flex items-center justify-center shadow-[3px_3px_0px_black] group-hover:scale-105 transition-transform">
-                    <span className="text-4xl animate-bounce">📦</span>
-                  </div>
-                  <h4 className="font-black text-xs uppercase leading-none text-sky-950">¡Abrí tu cajita especial!</h4>
-                  <p className="text-[9px] text-stone-600 max-w-[200px] mx-auto uppercase">
-                    Descubrí qué tiza y qué instrucciones de juego te tocaron de regalo.
-                  </p>
-                  <button
-                    onClick={openRayuelaCajita}
-                    className="bg-sky-500 hover:bg-sky-400 text-white font-black text-[10px] px-4 py-2 border-2 border-black shadow-[2.5px_2.5px_0px_black] uppercase tracking-wider rounded active:translate-y-0.5 active:shadow-none cursor-pointer"
-                  >
-                    🔓 ¡Abrir Cajita!
-                  </button>
-                </div>
-              ) : (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="space-y-4 text-left"
-                >
-                  <div className="flex items-center justify-between border-b border-black/10 pb-2">
-                    <span className="text-[10px] font-black uppercase text-emerald-600 flex items-center gap-1 animate-pulse">
-                      ✨ ¡Cajita Abierta!
-                    </span>
-                    <button 
-                      onClick={() => setIsCajitaOpen(false)}
-                      className="text-[9px] font-mono hover:underline uppercase font-bold text-rose-500 cursor-pointer"
-                    >
-                      Cerrar
-                    </button>
-                  </div>
-
-                  <div className="space-y-2 text-xs">
-                    {/* Tiza color */}
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-stone-700">🖍️ TIZA ESPECIAL:</span>
-                      <span className={`font-mono text-[9px] px-2 py-0.5 rounded border border-black/20 font-black uppercase ${cajitaContent?.tizaColor}`}>
-                        {cajitaContent?.tizaName}
-                      </span>
-                    </div>
-
-                    {/* Madera */}
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-stone-700">🪵 MADERITA PARA TIRAR:</span>
-                      <span className="font-mono text-[10px] bg-amber-100 text-amber-950 px-2 py-0.5 rounded border border-black/20 font-black">
-                        Bloque Nº {cajitaContent?.maderaNum}
-                      </span>
-                    </div>
-
-                    {/* Instrucciones */}
-                    <div className="border-2 border-dashed border-black/30 p-2.5 rounded-xl bg-white space-y-1.5 mt-2">
-                      <span className="text-[8px] font-mono font-black uppercase text-stone-400 block">
-                        📜 Instrucción inspirada en la vida:
-                      </span>
-                      <p className="text-[11px] font-bold text-stone-800 leading-tight italic">
-                        "{cajitaContent?.instruccion}"
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={openRayuelaCajita}
-                    className="w-full bg-white hover:bg-stone-50 text-stone-800 font-black text-[9px] py-1.5 border-2 border-black shadow-[1.5px_1.5px_0px_black] uppercase text-center rounded active:translate-y-0.5 active:shadow-none cursor-pointer"
-                  >
-                    🎲 Obtener otra combinación
-                  </button>
-                </motion.div>
-              )}
+              <div className="md:col-span-5 space-y-3">
+                <ImageUploadSlot
+                  id="cajitas"
+                  placeholderIcon={<Gift className="w-8 h-8 text-sky-600 animate-pulse" />}
+                  placeholderBg="bg-sky-100"
+                  iconColor="text-sky-600"
+                  title="Foto de las Cajitas Especiales"
+                  subtitle="El cofre mágico del Alero"
+                  uploadedImages={uploadedImages}
+                  onUpload={handleImageUpload}
+                  onRemove={handleRemoveImage}
+                  defaultImageUrl="https://i.postimg.cc/02n7bwG0/1782674199462.png"
+                  aspectClass="aspect-[3/4]"
+                />
+              </div>
             </div>
           </section>
 
