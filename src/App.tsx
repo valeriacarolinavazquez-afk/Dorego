@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Edition07 from "./components/Edition07";
 import Edition08 from "./components/Edition08";
+import Edition09 from "./components/Edition09";
 import { 
   Menu,
   X,
@@ -1134,9 +1135,9 @@ export default function App() {
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
-      return saved ? parseInt(saved) : 8;
+      return saved ? parseInt(saved) : 9;
     }
-    return 8;
+    return 9;
   });
 
   useEffect(() => {
@@ -1497,7 +1498,7 @@ export default function App() {
             
             <div className="mb-8 space-y-2">
               <p className="text-[10px] font-black uppercase opacity-50 mb-2">Seleccionar Edición</p>
-              <div className="grid grid-cols-4 gap-1">
+              <div className="grid grid-cols-5 gap-1">
                 <button 
                   onClick={() => toggleEdition(1)}
                   className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 1 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
@@ -1545,6 +1546,12 @@ export default function App() {
                   className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 8 ? 'bg-white text-black border-white' : 'border-white/20 hover:border-white'}`}
                 >
                   Vol. 8
+                </button>
+                <button 
+                  onClick={() => toggleEdition(9)}
+                  className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 9 ? 'bg-[#fef08a] text-black border-[#fef08a]' : 'border-white/20 hover:border-white'}`}
+                >
+                  💥 Vol. 9
                 </button>
               </div>
             </div>
@@ -1605,6 +1612,14 @@ export default function App() {
                   <a href="#buzon-ed8" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-rose-400 transition-colors border-b border-white/10 pb-1">✍️ Mural de Deseos</a>
                 </>
               )}
+              {edition === 9 && (
+                <>
+                  <a href="#inicio-ed9" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1 text-yellow-300 animate-pulse">📰 Portada Aleroticias</a>
+                  <a href="#nombre-votacion" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-rose-400 transition-colors border-b border-white/10 pb-1">🗳️ Votación Identidad</a>
+                  <a href="#rayuela-caja" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-sky-400 transition-colors border-b border-white/10 pb-1">📦 Regalo Rayuela</a>
+                  <a href="#buzon-ed9" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-teal-400 transition-colors border-b border-white/10 pb-1">✍️ Mural de Deseos</a>
+                </>
+              )}
             </nav>
           </motion.div>
         )}
@@ -1626,6 +1641,7 @@ export default function App() {
           {edition === 6 && <Edition06 />}
           {edition === 7 && <Edition07 />}
           {edition === 8 && <Edition08 />}
+          {edition === 9 && <Edition09 />}
         </div>
 
         {/* Centro de Descarga de PDF / Guardado */}
