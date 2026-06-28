@@ -41,6 +41,115 @@ interface Wish {
   date: string;
 }
 
+interface ImageUploadSlotProps {
+  id: string;
+  placeholderIcon: React.ReactNode;
+  placeholderBg: string;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+  uploadedImages: Record<string, string>;
+  onUpload: (id: string, file: File) => void;
+  onRemove: (id: string) => void;
+  aspectClass?: string;
+  defaultImageUrl?: string;
+}
+
+function ImageUploadSlot({
+  id,
+  placeholderIcon,
+  placeholderBg,
+  iconColor,
+  title,
+  subtitle,
+  uploadedImages,
+  onUpload,
+  onRemove,
+  aspectClass = "aspect-[3/4]",
+  defaultImageUrl
+}: ImageUploadSlotProps) {
+  const imageUrl = uploadedImages[id];
+  const displayUrl = imageUrl || defaultImageUrl;
+  const fileInputId = `file-input-${id}`;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onUpload(id, file);
+    }
+  };
+
+  return (
+    <div 
+      className={`border-2 border-black rounded-2xl overflow-hidden bg-stone-50 shadow-inner ${aspectClass} w-full relative group cursor-pointer transition-transform duration-300 hover:scale-[1.01]`}
+      onClick={() => {
+        if (!imageUrl) {
+          document.getElementById(fileInputId)?.click();
+        }
+      }}
+    >
+      <input 
+        type="file" 
+        id={fileInputId} 
+        className="hidden" 
+        accept="image/*" 
+        onChange={handleFileChange} 
+      />
+      {displayUrl ? (
+        <>
+          <img 
+            src={displayUrl} 
+            alt={title} 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+          {/* Action overlay */}
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-4">
+            <span className="text-white text-[10px] font-black uppercase tracking-wider bg-black border-2 border-white px-2.5 py-1 rounded shadow-[2px_2px_0px_black] text-center">
+              {imageUrl ? "🖼️ FOTO PERSONALIZADA" : "🌟 FOTO DEL ESCENARIO"}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  document.getElementById(fileInputId)?.click();
+                }}
+                className="bg-yellow-400 hover:bg-yellow-300 text-black border-2 border-black px-2.5 py-1 text-[10px] font-black uppercase rounded shadow-[1.5px_1.5px_0px_black] active:translate-y-0.5 active:shadow-none"
+              >
+                🔄 {imageUrl ? "Cambiar" : "Subir Propia"}
+              </button>
+              {imageUrl && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(id);
+                  }}
+                  className="bg-red-500 hover:bg-red-400 text-white border-2 border-black px-2.5 py-1 text-[10px] font-black uppercase rounded shadow-[1.5px_1.5px_0px_black] active:translate-y-0.5 active:shadow-none"
+                >
+                  🗑️ Eliminar
+                </button>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center space-y-3 hover:bg-stone-100/50 transition-colors">
+          <div className={`w-14 h-14 rounded-full border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_black] ${placeholderBg}`}>
+            {placeholderIcon}
+          </div>
+          <div className="space-y-1">
+            <p className="font-black text-[11px] uppercase tracking-wider text-stone-800 leading-tight">{title}</p>
+            <p className="font-mono text-[8px] text-stone-500 uppercase leading-none">{subtitle}</p>
+            <span className="inline-block mt-2 bg-stone-900 text-white border border-black font-mono text-[7px] font-bold px-1.5 py-0.5 rounded shadow-[1px_1px_0px_black] hover:bg-stone-800">
+              SUBIR FOTO 📁
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Edition09() {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [newWishAuthor, setNewWishAuthor] = useState("");
@@ -48,8 +157,49 @@ export default function Edition09() {
   const [isSubmittingWish, setIsSubmittingWish] = useState(false);
   const [wishError, setWishError] = useState<string | null>(null);
 
+  // Dynamic Image Upload state
+  const [uploadedImages, setUploadedImages] = useState<Record<string, string>>(() => {
+    try {
+      const saved = localStorage.getItem("alero_uploaded_images");
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const handleImageUpload = (id: string, file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setUploadedImages(prev => {
+        const next = { ...prev, [id]: base64String };
+        try {
+          localStorage.setItem("alero_uploaded_images", JSON.stringify(next));
+        } catch (e) {
+          console.warn("Could not save to localStorage (quota exceeded or disabled)");
+        }
+        return next;
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = (id: string) => {
+    setUploadedImages(prev => {
+      const next = { ...prev };
+      delete next[id];
+      try {
+        localStorage.setItem("alero_uploaded_images", JSON.stringify(next));
+      } catch (e) {
+        console.warn("Could not save to localStorage");
+      }
+      return next;
+    });
+  };
+
   // Sound and TTS States
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isReadingAll, setIsReadingAll] = useState(false);
   const [speechState, setSpeechState] = useState<{
     isSpeaking: boolean;
     isPaused: boolean;
@@ -87,7 +237,7 @@ export default function Edition09() {
   const textToRead = [
     "Diario Aleroticias. Edición Especial de los Diez Años. Veintiocho de junio de dos mil veintiséis. ¡Tenemos nuevo nombre oficial elegido por votación popular!",
     "En una jornada histórica adentro de la Fábrica de la Palabra, se vivió una votación muy reñida para elegir la identidad de nuestro diario. Aunque muchos pensábamos que se iba a llamar El Dorrego, la comunidad habló en las urnas y el ganador definitivo fue Aleroticias.",
-    "El Alero se transformó por completo en una verdadera fábrica de felicidad con cuatro estaciones espectaculares: la fábrica de cotillón armando guirnaldas y bonetes, la fábrica de entrevistas preguntando qué es un alero, la fábrica de la solidaridad bordando mantitas con amor, y la cocina horneando deliciosas galletitas y muffins.",
+    "El Alero se transformó por completo en una verdadera fábrica de felicidad con cuatro estaciones espectaculares: la fábrica de objetos armando guirnaldas y bonetes, la fábrica de entrevistas preguntando por un alero para, la fábrica de textil bordando mantitas con amor, y la cocina horneando deliciosas galletitas y muffins.",
     "El Bazar de todos los Mundos abrió su huerta de juguetes llenos de vegetales de lana, mientras enfrente se hacía yoga en el espacio Hacer Nacer.",
     "Los vecinos dejaron grabado en maderas un deseo inmenso y compartido: que el Alero siga existiendo siempre.",
     "Las explanadas bailaron al compás de Elegidos Chamamé y el rock infantil de Gulubú Rock.",
@@ -98,7 +248,7 @@ export default function Edition09() {
     { name: "Verde Esperanza", color: "bg-emerald-400 text-emerald-950" },
     { name: "Rosa Caramelo", color: "bg-pink-400 text-pink-950" },
     { name: "Amarillo Sol", color: "bg-yellow-400 text-yellow-950" },
-    { name: "Cielo de Guadalupe", color: "bg-sky-400 text-sky-950" },
+    { name: "Cielo de Coronel Dorrego", color: "bg-sky-400 text-sky-950" },
     { name: "Naranja Atardecer", color: "bg-orange-400 text-orange-950" }
   ];
 
@@ -314,7 +464,7 @@ export default function Edition09() {
   };
 
   // TTS Voice Engine
-  const speakText = (index: number) => {
+  const speakText = (index: number, readAll: boolean = false) => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
     if (speechState.isSpeaking && speechState.currentIndex === index) {
@@ -329,6 +479,7 @@ export default function Edition09() {
     }
 
     window.speechSynthesis.cancel();
+    setIsReadingAll(readAll);
 
     const utterance = new SpeechSynthesisUtterance(textToRead[index]);
     utterance.lang = "es-AR";
@@ -343,11 +494,16 @@ export default function Edition09() {
     };
 
     utterance.onend = () => {
-      setSpeechState({
-        isSpeaking: false,
-        isPaused: false,
-        currentIndex: -1
-      });
+      if (readAll && index + 1 < textToRead.length) {
+        speakText(index + 1, true);
+      } else {
+        setSpeechState({
+          isSpeaking: false,
+          isPaused: false,
+          currentIndex: -1
+        });
+        setIsReadingAll(false);
+      }
     };
 
     utterance.onerror = () => {
@@ -356,6 +512,7 @@ export default function Edition09() {
         isPaused: false,
         currentIndex: -1
       });
+      setIsReadingAll(false);
     };
 
     window.speechSynthesis.speak(utterance);
@@ -370,6 +527,7 @@ export default function Edition09() {
       isPaused: false,
       currentIndex: -1
     });
+    setIsReadingAll(false);
   };
 
   // Voting action
@@ -442,7 +600,7 @@ export default function Edition09() {
       <div className="flex justify-between items-end border-b-4 border-black pb-4 mb-8 text-black">
         <div className="text-[10px] md:text-sm font-black leading-none uppercase tracking-tighter">
           <span className="bg-black text-white px-2 py-1 mr-2 inline-block">EDICIÓN HISTÓRICA</span>
-          PRENSA COMUNITARIA • LA COMUNIDAD HABLA • GUADALUPE OESTE • SANTA FE • 2026
+          PRENSA COMUNITARIA • LA COMUNIDAD HABLA • CORONEL DORREGO • SANTA FE • 2026
         </div>
         <div className="text-right text-[10px] md:text-sm font-black uppercase">
           NUEVA ERA • VOL. I • Nº 009<br />
@@ -496,14 +654,25 @@ export default function Edition09() {
             <AudioLines className={`w-8 h-8 text-rose-500 ${speechState.isSpeaking && !speechState.isPaused ? 'animate-pulse' : ''}`} />
             <div className="text-left">
               <span className="text-[9px] font-black uppercase text-stone-500 block">Audioguía de Aleroticias</span>
-              <span className="text-xs font-bold uppercase text-stone-900 leading-none">Escucha las historias narradas</span>
+              {speechState.isSpeaking ? (
+                <div className="space-y-0.5">
+                  <span className="text-xs font-bold uppercase text-stone-950 block leading-none">
+                    {isReadingAll ? `Escuchando Edición Completa` : `Escuchando Sección Individual`}
+                  </span>
+                  <span className="text-[10px] font-mono text-rose-600 block leading-none font-bold animate-pulse">
+                    Parte {speechState.currentIndex + 1} de {textToRead.length}
+                  </span>
+                </div>
+              ) : (
+                <span className="text-xs font-bold uppercase text-stone-900 leading-none">Escucha las historias narradas de corrido</span>
+              )}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 justify-center">
             {speechState.isSpeaking ? (
               <>
                 <button
-                  onClick={() => speakText(speechState.currentIndex)}
+                  onClick={() => speakText(speechState.currentIndex, isReadingAll)}
                   className="bg-amber-400 hover:bg-amber-300 border-2 border-black px-3 py-1 text-xs font-black uppercase shadow-[1.5px_1.5px_0px_black] flex items-center gap-1 cursor-pointer"
                 >
                   {speechState.isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
@@ -518,13 +687,23 @@ export default function Edition09() {
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => speakText(0)}
-                className="bg-emerald-400 hover:bg-emerald-300 border-2 border-black px-4 py-1.5 text-xs font-black uppercase shadow-[2px_2px_0px_black] flex items-center gap-1.5 cursor-pointer"
-              >
-                <Play className="w-4 h-4 fill-current" />
-                <span>Escuchar Portada</span>
-              </button>
+              <>
+                <button
+                  onClick={() => speakText(0, true)}
+                  className="bg-emerald-500 hover:bg-emerald-400 text-white border-2 border-black px-4 py-1.5 text-xs font-black uppercase shadow-[2px_2px_0px_black] flex items-center gap-1.5 cursor-pointer"
+                  title="Escucha todo el periódico entero sin interrupciones de principio a fin"
+                >
+                  <Play className="w-4 h-4 fill-current animate-pulse" />
+                  <span>🔊 Escuchar Edición Completa</span>
+                </button>
+                <button
+                  onClick={() => speakText(0, false)}
+                  className="bg-stone-200 hover:bg-stone-300 text-stone-900 border-2 border-black px-3 py-1.5 text-[11px] font-black uppercase shadow-[1.5px_1.5px_0px_black] flex items-center gap-1 cursor-pointer"
+                  title="Escucha solo la introducción"
+                >
+                  <span>Portada</span>
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -603,7 +782,7 @@ export default function Edition09() {
 
               {hasVoted ? (
                 <p className="text-[9px] font-black text-emerald-600 uppercase flex items-center justify-center gap-1 animate-pulse pt-1">
-                  <Check className="w-3 h-3" /> ¡Gracias por participar en Guadalupe Oeste!
+                  <Check className="w-3 h-3" /> ¡Gracias por participar en Coronel Dorrego!
                 </p>
               ) : (
                 <p className="text-[8px] font-mono text-stone-500 uppercase tracking-tight italic pt-1">
@@ -720,17 +899,19 @@ export default function Edition09() {
               <span className="bg-sky-500 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
                 📷 POSTAL DE NUESTRO ENCUENTRO
               </span>
-              <div className="border-2 border-black rounded-2xl overflow-hidden bg-stone-50 shadow-inner aspect-[3/4] w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-sky-100 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_black]">
-                  <Film className="w-8 h-8 text-sky-600 animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-black text-xs uppercase tracking-wider text-stone-800">Espacio para Foto / Video</p>
-                  <p className="font-mono text-[9px] text-stone-500 uppercase">¡Muy pronto subiremos los mejores momentos! 🎬</p>
-                </div>
-              </div>
+              <ImageUploadSlot
+                id="encuentro"
+                placeholderIcon={<Film className="w-8 h-8 text-sky-600 animate-pulse" />}
+                placeholderBg="bg-sky-100"
+                iconColor="text-sky-600"
+                title="Espacio para Foto / Video"
+                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
+                uploadedImages={uploadedImages}
+                onUpload={handleImageUpload}
+                onRemove={handleRemoveImage}
+              />
               <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
-                El Alero, espacio de juego, encuentro y risas compartidas en el corazón de Guadalupe Oeste. ❤️
+                El Alero, espacio de juego, encuentro y risas compartidas en el corazón de Coronel Dorrego. ❤️
               </p>
             </div>
           </section>
@@ -754,12 +935,17 @@ export default function Edition09() {
                 El Alero se transformó por completo y cada rincón funcionó como una verdadera fábrica de alegría y comunidad:
               </p>
 
+              {/* Fábrica de Textil Highlight Block */}
+              <div className="bg-sky-50 border-l-4 border-sky-400 p-4 rounded-r-xl my-4 text-xs md:text-sm font-semibold text-stone-800 leading-relaxed text-justify shadow-sm">
+                📌 <strong className="uppercase text-sky-700 font-black">La emotiva Fábrica de Textil:</strong> Una de las acciones que más conmovió los corazones del barrio Coronel Dorrego fue el taller de costura y bordado. Allí, vecinas, madres y abuelas se unieron hilo a hilo, puntada a puntada, con infinito cariño para tejer y bordar hermosas mantitas destinadas a los bebés recién nacidos de la comunidad, uniendo al barrio en un gran abrazo de bienvenida a las nuevas vidas. ¡Una hermosa acción de puro amor barrial! 🧸✨
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 
                 <div className="border-2 border-black p-4 bg-white rounded-2xl shadow-[3px_3px_0px_black] flex flex-col justify-between">
                   <div>
                     <span className="text-[8px] font-mono font-black bg-yellow-400 text-black px-2 py-0.5 rounded shadow-[1px_1px_0px_black] uppercase">
-                      🎉 COTILLÓN
+                      🎉 FÁBRICA DE OBJETOS
                     </span>
                     <h5 className="font-black text-sm uppercase mt-2">Guirnaldas a contrarreloj</h5>
                     <p className="text-xs font-semibold text-stone-600 mt-1 leading-normal text-justify">
@@ -775,7 +961,7 @@ export default function Edition09() {
                     </span>
                     <h5 className="font-black text-sm uppercase mt-2">Voz de nuestra redacción</h5>
                     <p className="text-xs font-semibold text-stone-600 mt-1 leading-normal text-justify">
-                      Te preguntaban: "¿Vos qué decís que es un Alero para...?". Nuestra redacción respondió feliz: <strong className="text-rose-600">"¡Un Alero para divertirse!"</strong>
+                      Te preguntaban: "Un Alero para...". Nuestra redacción respondió feliz: <strong className="text-rose-600">"¡Un Alero para divertirse!"</strong>
                     </p>
                   </div>
                 </div>
@@ -783,7 +969,7 @@ export default function Edition09() {
                 <div className="border-2 border-black p-4 bg-white rounded-2xl shadow-[3px_3px_0px_black] flex flex-col justify-between">
                   <div>
                     <span className="text-[8px] font-mono font-black bg-sky-500 text-white px-2 py-0.5 rounded shadow-[1px_1px_0px_black] uppercase">
-                      🤝 SOLIDARIDAD
+                      🤝 FÁBRICA DE TEXTIL
                     </span>
                     <h5 className="font-black text-sm uppercase mt-2">Bordando con amor</h5>
                     <p className="text-xs font-semibold text-stone-600 mt-1 leading-normal text-justify">
@@ -823,15 +1009,17 @@ export default function Edition09() {
               <span className="bg-yellow-400 text-black font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
                 📷 IMAGEN DESTACADA DESDE LAS FÁBRICAS
               </span>
-              <div className="border-2 border-black rounded-2xl overflow-hidden bg-stone-50 shadow-inner aspect-[3/4] w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-yellow-100 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_black]">
-                  <Camera className="w-8 h-8 text-yellow-600 animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-black text-xs uppercase tracking-wider text-stone-800">Espacio para Foto / Video</p>
-                  <p className="font-mono text-[9px] text-stone-500 uppercase">¡Muy pronto subiremos los mejores momentos! 🎬</p>
-                </div>
-              </div>
+              <ImageUploadSlot
+                id="fabricas"
+                placeholderIcon={<Camera className="w-8 h-8 text-yellow-600 animate-pulse" />}
+                placeholderBg="bg-yellow-100"
+                iconColor="text-yellow-600"
+                title="Espacio para Foto / Video"
+                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
+                uploadedImages={uploadedImages}
+                onUpload={handleImageUpload}
+                onRemove={handleRemoveImage}
+              />
               <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
                 Tejiendo, pintando, cocinando e inventando juntos mundos más felices en el taller. ✨
               </p>
@@ -938,15 +1126,17 @@ export default function Edition09() {
               <span className="bg-sky-500 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
                 📷 POSTAL DE NUESTROS OBJETOS Y JUEGOS
               </span>
-              <div className="border-2 border-black rounded-2xl overflow-hidden bg-stone-50 shadow-inner aspect-[3/4] w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-sky-100 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_black]">
-                  <Film className="w-8 h-8 text-sky-600 animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-black text-xs uppercase tracking-wider text-stone-800">Espacio para Foto / Video</p>
-                  <p className="font-mono text-[9px] text-stone-500 uppercase">¡Muy pronto subiremos los mejores momentos! 🎬</p>
-                </div>
-              </div>
+              <ImageUploadSlot
+                id="objetos"
+                placeholderIcon={<Film className="w-8 h-8 text-sky-600 animate-pulse" />}
+                placeholderBg="bg-sky-100"
+                iconColor="text-sky-600"
+                title="Espacio para Foto / Video"
+                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
+                uploadedImages={uploadedImages}
+                onUpload={handleImageUpload}
+                onRemove={handleRemoveImage}
+              />
               <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
                 El bazar abierto al juego, la construcción y los encuentros creativos. 🪵
               </p>
@@ -975,20 +1165,22 @@ export default function Edition09() {
                     ¿Qué querés que siga existiendo siempre?
                   </p>
                   <p className="text-xs md:text-sm font-semibold italic text-stone-600">
-                    Y la respuesta que emocionó a todos en Guadalupe Oeste fue rotunda, grabada con muchísima fuerza: <strong>¡Que el Alero siga existiendo siempre!</strong> ❤️
+                    Y la respuesta que emocionó a todos en Coronel Dorrego fue rotunda, grabada con muchísima fuerza: <strong>¡Que el Alero siga existiendo siempre!</strong> ❤️
                   </p>
                 </div>
 
                 <div className="w-full md:w-2/5">
-                  <div className="border-2 border-black rounded-2xl overflow-hidden bg-stone-50 shadow-inner aspect-[3/4] w-full flex flex-col items-center justify-center p-4 text-center space-y-2">
-                    <div className="w-12 h-12 rounded-full bg-rose-100 border-2 border-black flex items-center justify-center shadow-[1.5px_1.5px_0px_black]">
-                      <Camera className="w-6 h-6 text-rose-600 animate-pulse" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className="font-black text-[10px] uppercase tracking-wider text-stone-800">Foto / Video</p>
-                      <p className="font-mono text-[8px] text-stone-500 uppercase">Muy pronto... 🎬</p>
-                    </div>
-                  </div>
+                  <ImageUploadSlot
+                    id="community4"
+                    placeholderIcon={<Camera className="w-6 h-6 text-rose-600 animate-pulse" />}
+                    placeholderBg="bg-rose-100"
+                    iconColor="text-rose-600"
+                    title="Foto / Video"
+                    subtitle="Muy pronto... 🎬"
+                    uploadedImages={uploadedImages}
+                    onUpload={handleImageUpload}
+                    onRemove={handleRemoveImage}
+                  />
                 </div>
               </div>
 
@@ -1013,41 +1205,70 @@ export default function Edition09() {
                 ESCENARIO PRINCIPAL A TODO TRAPO
               </span>
               
-              <p className="text-sm font-bold text-stone-700 leading-relaxed uppercase">
-                Las explanadas se llenaron de gente de punta a punta y el escenario principal vibró con dos propuestas espectaculares para bailar con el alma:
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-                <div 
-                  onClick={() => playSynthTone("coin")}
-                  className="border-2 border-black p-5 bg-white rounded-2xl shadow-[3px_3px_0px_black] text-left hover:-translate-y-1 transition-transform cursor-pointer group"
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="bg-amber-400 text-black font-mono text-[7px] font-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_black] uppercase">
-                      🎻 CHAMAMÉ
-                    </span>
-                    <Music className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                <div className="md:col-span-5 space-y-3">
+                  <ImageUploadSlot
+                    id="escenario"
+                    placeholderIcon={<Music className="w-8 h-8 text-rose-600 animate-pulse" />}
+                    placeholderBg="bg-rose-100"
+                    iconColor="text-rose-600"
+                    title="Foto del Escenario Principal"
+                    subtitle="El Alero vibrando con música y baile"
+                    uploadedImages={uploadedImages}
+                    onUpload={handleImageUpload}
+                    onRemove={handleRemoveImage}
+                    defaultImageUrl="https://i.postimg.cc/FRJWNR3n/IMG-20260627-180356-807.jpg"
+                    aspectClass="aspect-[4/3]"
+                  />
+                  {/* Highly visible callout banner next to/under the image */}
+                  <div className="bg-amber-100 border-4 border-dashed border-amber-500 p-3 rounded-2xl shadow-[2px_2px_0px_black] text-left">
+                    <p className="text-[11px] font-black text-amber-950 uppercase tracking-tight flex items-center gap-1">
+                      📸 ¡SUBÍ TU PROPIA FOTO!
+                    </p>
+                    <p className="text-[10px] font-extrabold text-stone-800 mt-1 leading-normal">
+                      o también puedes añadir una foto desde tu celular o computadora haciendo clic en la imagen del escenario.
+                    </p>
                   </div>
-                  <h4 className="font-black text-lg uppercase mt-2 text-stone-900 leading-none">Elegidos Chamamé</h4>
-                  <p className="text-xs font-semibold text-stone-600 mt-2 leading-relaxed text-justify">
-                    Pusieron a todo el patio a bailar con el acordeón y la guitarra bien arriba. ¡Un zapateo barrial inolvidable que hizo temblar la explanada!
-                  </p>
                 </div>
 
-                <div 
-                  onClick={() => playSynthTone("celebrate")}
-                  className="border-2 border-black p-5 bg-white rounded-2xl shadow-[3px_3px_0px_black] text-left hover:-translate-y-1 transition-transform cursor-pointer group"
-                >
-                  <div className="flex justify-between items-start">
-                    <span className="bg-sky-500 text-white font-mono text-[7px] font-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_black] uppercase">
-                      🎸 ROCK INFANTIL
-                    </span>
-                    <Disc className="w-4 h-4 text-sky-500 group-hover:spin transition-all" />
-                  </div>
-                  <h4 className="font-black text-lg uppercase mt-2 text-stone-900 leading-none">Gulubú Rock</h4>
-                  <p className="text-xs font-semibold text-stone-600 mt-2 leading-relaxed text-justify">
-                    Los más chicos (¡y los grandes también!) cantaron, saltaron y agitaron los bonetes con el mejor rock infantil reversionado del mundo.
+                <div className="md:col-span-7 space-y-4">
+                  <p className="text-sm font-bold text-stone-700 leading-relaxed uppercase text-justify">
+                    Las explanadas se llenaron de gente de punta a punta y el escenario principal vibró con dos propuestas espectaculares para bailar con el alma:
                   </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div 
+                      onClick={() => playSynthTone("coin")}
+                      className="border-2 border-black p-4 bg-white rounded-2xl shadow-[2.5px_2.5px_0px_black] text-left hover:-translate-y-1 transition-transform cursor-pointer group"
+                    >
+                      <div className="flex justify-between items-start">
+                        <span className="bg-amber-400 text-black font-mono text-[7px] font-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_black] uppercase">
+                          🎻 CHAMAMÉ
+                        </span>
+                        <Music className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" />
+                      </div>
+                      <h4 className="font-black text-base uppercase mt-2 text-stone-900 leading-none">Elegidos Chamamé</h4>
+                      <p className="text-[11px] font-semibold text-stone-600 mt-2 leading-relaxed text-justify">
+                        Pusieron a todo el patio a bailar con el acordeón y la guitarra bien arriba. ¡Un zapateo barrial inolvidable!
+                      </p>
+                    </div>
+
+                    <div 
+                      onClick={() => playSynthTone("celebrate")}
+                      className="border-2 border-black p-4 bg-white rounded-2xl shadow-[2.5px_2.5px_0px_black] text-left hover:-translate-y-1 transition-transform cursor-pointer group"
+                    >
+                      <div className="flex justify-between items-start">
+                        <span className="bg-sky-500 text-white font-mono text-[7px] font-black px-1.5 py-0.5 rounded shadow-[1px_1px_0px_black] uppercase">
+                          🎸 ROCK INFANTIL
+                        </span>
+                        <Disc className="w-4 h-4 text-sky-500 group-hover:spin transition-all" />
+                      </div>
+                      <h4 className="font-black text-base uppercase mt-2 text-stone-900 leading-none">Gulubú Rock</h4>
+                      <p className="text-[11px] font-semibold text-stone-600 mt-2 leading-relaxed text-justify">
+                        Los más chicos (¡y grandes!) cantaron, saltaron y agitaron los bonetes con el mejor rock infantil reversionado.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1166,17 +1387,19 @@ export default function Edition09() {
               <span className="bg-rose-500 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
                 📷 POSTAL DEL GRAN CIERRE
               </span>
-              <div className="border-2 border-black rounded-2xl overflow-hidden bg-stone-50 shadow-inner aspect-[3/4] w-full flex flex-col items-center justify-center p-6 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-rose-100 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_black]">
-                  <Film className="w-8 h-8 text-rose-600 animate-pulse" />
-                </div>
-                <div className="space-y-1">
-                  <p className="font-black text-xs uppercase tracking-wider text-stone-800">Espacio para Foto / Video</p>
-                  <p className="font-mono text-[9px] text-stone-500 uppercase">¡Muy pronto subiremos los mejores momentos! 🎬</p>
-                </div>
-              </div>
+              <ImageUploadSlot
+                id="cierre"
+                placeholderIcon={<Film className="w-8 h-8 text-rose-600 animate-pulse" />}
+                placeholderBg="bg-rose-100"
+                iconColor="text-rose-600"
+                title="Espacio para Foto / Video"
+                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
+                uploadedImages={uploadedImages}
+                onUpload={handleImageUpload}
+                onRemove={handleRemoveImage}
+              />
               <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
-                La alegría multiplicada, el abrazo infinito de todo el barrio de Guadalupe Oeste. ❤️
+                La alegría multiplicada, el abrazo infinito de todo el barrio de Coronel Dorrego. ❤️
               </p>
             </div>
           </section>
@@ -1254,6 +1477,32 @@ export default function Edition09() {
 
                 {/* List Output Column (3/5) */}
                 <div className="lg:col-span-3 space-y-6">
+                  {/* Neon Scoreboard Wish Counter */}
+                  <div className="bg-black text-[#14b8a6] border-4 border-black p-4 rounded-xl shadow-[4px_4px_0px_black] flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="space-y-0.5 text-center sm:text-left">
+                      <span className="text-[9px] font-black text-teal-400 uppercase tracking-widest block font-mono">🌟 REGISTRO DE DESEOS</span>
+                      <span className="text-xs font-black uppercase text-white block">Deseos totales de Coronel Dorrego</span>
+                    </div>
+                    <div className="flex gap-1 bg-teal-950/50 p-1.5 rounded-lg border border-teal-500/30">
+                      {String(wishes.length).padStart(4, "0").split("").map((digit, i) => (
+                        <div 
+                          key={i} 
+                          className="w-8 h-10 bg-black text-teal-400 border border-teal-500 font-mono font-black text-xl flex items-center justify-center rounded shadow-inner"
+                          style={{ textShadow: "0 0 8px rgba(20,184,166,0.6)" }}
+                        >
+                          <motion.span
+                            key={`${digit}-${i}`}
+                            initial={{ y: -10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                          >
+                            {digit}
+                          </motion.span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex border-b-4 border-black pb-2 items-center justify-between text-[#0f766e]">
                     <span className="text-sm font-black uppercase tracking-tight text-teal-600 flex items-center gap-1.5">
                       ✨ DESEOS RECIBIDOS ({wishes.length})
