@@ -7,8 +7,9 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // JSON middleware to support parsing JSON bodies
-  app.use(express.json());
+  // JSON middleware to support parsing JSON bodies with high limit for images and videos
+  app.use(express.json({ limit: "100mb" }));
+  app.use(express.urlencoded({ limit: "100mb", extended: true }));
 
   // Enable CORS to support external clients (like Vercel: dorego.vercel.app)
   app.use((req, res, next) => {
@@ -19,6 +20,52 @@ async function startServer() {
       return res.sendStatus(200);
     }
     next();
+  });
+
+  // POST /api/upload - handles base64 image/video upload and returns a static public URL
+  app.post("/api/upload", (req, res) => {
+    const { filename, base64Data } = req.body;
+    if (!base64Data) {
+      return res.status(400).json({ error: "No data provided" });
+    }
+
+    try {
+      // Extract base64 content
+      const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      let buffer: Buffer;
+      let extension = "png";
+
+      if (matches && matches.length === 3) {
+        const mimeType = matches[1];
+        buffer = Buffer.from(matches[2], "base64");
+        // Get extension from mimeType
+        if (mimeType.includes("video/mp4")) extension = "mp4";
+        else if (mimeType.includes("video/quicktime")) extension = "mov";
+        else if (mimeType.includes("video/webm")) extension = "webm";
+        else if (mimeType.includes("image/jpeg") || mimeType.includes("image/jpg")) extension = "jpg";
+        else if (mimeType.includes("image/png")) extension = "png";
+        else if (mimeType.includes("image/gif")) extension = "gif";
+      } else {
+        buffer = Buffer.from(base64Data, "base64");
+      }
+
+      const uploadDir = path.join(process.cwd(), "public", "images");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      const safeFilename = `${filename ? filename.replace(/[^a-zA-Z0-9_\-]/g, "") : "upload"}_${Date.now()}.${extension}`;
+      const filePath = path.join(uploadDir, safeFilename);
+
+      fs.writeFileSync(filePath, buffer);
+
+      const publicUrl = `/images/${safeFilename}`;
+      console.log(`Uploaded file saved to: ${filePath} -> Served at ${publicUrl}`);
+      res.json({ url: publicUrl });
+    } catch (error) {
+      console.error("Error processing file upload:", error);
+      res.status(500).json({ error: "Error interno al procesar la carga" });
+    }
   });
 
   // Wishes file path

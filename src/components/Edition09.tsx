@@ -169,17 +169,41 @@ export default function Edition09() {
 
   const handleImageUpload = (id: string, file: File) => {
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64String = reader.result as string;
-      setUploadedImages(prev => {
-        const next = { ...prev, [id]: base64String };
-        try {
-          localStorage.setItem("alero_uploaded_images", JSON.stringify(next));
-        } catch (e) {
-          console.warn("Could not save to localStorage (quota exceeded or disabled)");
+      
+      // Keep base64 in state for immediate preview
+      setUploadedImages(prev => ({ ...prev, [id]: base64String }));
+      
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filename: id,
+            base64Data: base64String
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const serverUrl = data.url;
+          
+          setUploadedImages(prev => {
+            const next = { ...prev, [id]: serverUrl };
+            try {
+              localStorage.setItem("alero_uploaded_images", JSON.stringify(next));
+            } catch (e) {
+              // Silently ignore
+            }
+            return next;
+          });
         }
-        return next;
-      });
+      } catch (error) {
+        console.error("Error uploading file to server:", error);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -191,7 +215,7 @@ export default function Edition09() {
       try {
         localStorage.setItem("alero_uploaded_images", JSON.stringify(next));
       } catch (e) {
-        console.warn("Could not save to localStorage");
+        // Silently ignore
       }
       return next;
     });
@@ -912,30 +936,6 @@ export default function Edition09() {
             </div>
           </section>
 
-          {/* COMMUNITY PHOTO FROM ANNIVERSARY */}
-          <section className="relative group">
-            <div className="absolute inset-0 bg-[#e0f2fe] translate-x-3 translate-y-3 rounded-3xl border-4 border-dashed border-sky-300"></div>
-            <div className="relative border-4 border-black p-4 bg-white rounded-3xl shadow-[6px_6px_0px_black] text-left">
-              <span className="bg-sky-500 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
-                📷 POSTAL DE NUESTRO ENCUENTRO
-              </span>
-              <ImageUploadSlot
-                id="encuentro"
-                placeholderIcon={<Film className="w-8 h-8 text-sky-600 animate-pulse" />}
-                placeholderBg="bg-sky-100"
-                iconColor="text-sky-600"
-                title="Espacio para Foto / Video"
-                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
-                uploadedImages={uploadedImages}
-                onUpload={handleImageUpload}
-                onRemove={handleRemoveImage}
-              />
-              <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
-                El Alero, espacio de juego, encuentro y risas compartidas en el corazón de Coronel Dorrego. ❤️
-              </p>
-            </div>
-          </section>
-
         </aside>
 
         {/* Right Column (Main Content) */}
@@ -1019,30 +1019,6 @@ export default function Edition09() {
               >
                 <AudioLines className="w-3.5 h-3.5" /> Escuchar reporte de las Fábricas
               </button>
-            </div>
-          </section>
-
-          {/* 3:4 COMMUNITY IMAGE 2 */}
-          <section className="relative group max-w-2xl mx-auto">
-            <div className="absolute inset-0 bg-[#fef08a] translate-x-3 translate-y-3 rounded-3xl border-4 border-dashed border-yellow-300"></div>
-            <div className="relative border-4 border-black p-4 bg-white rounded-3xl shadow-[6px_6px_0px_black] text-left">
-              <span className="bg-yellow-400 text-black font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
-                📷 IMAGEN DESTACADA DESDE LAS FÁBRICAS
-              </span>
-              <ImageUploadSlot
-                id="fabricas"
-                placeholderIcon={<Camera className="w-8 h-8 text-yellow-600 animate-pulse" />}
-                placeholderBg="bg-yellow-100"
-                iconColor="text-yellow-600"
-                title="Espacio para Foto / Video"
-                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
-                uploadedImages={uploadedImages}
-                onUpload={handleImageUpload}
-                onRemove={handleRemoveImage}
-              />
-              <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
-                Tejiendo, pintando, cocinando e inventando juntos mundos más felices en el taller. ✨
-              </p>
             </div>
           </section>
 
@@ -1139,30 +1115,6 @@ export default function Edition09() {
             </button>
           </section>
 
-          {/* 3:4 COMMUNITY IMAGE 3 */}
-          <section className="relative group max-w-2xl mx-auto">
-            <div className="absolute inset-0 bg-[#e0f2fe] translate-x-3 translate-y-3 rounded-3xl border-4 border-dashed border-sky-300"></div>
-            <div className="relative border-4 border-black p-4 bg-white rounded-3xl shadow-[6px_6px_0px_black] text-left">
-              <span className="bg-sky-500 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
-                📷 POSTAL DE NUESTROS OBJETOS Y JUEGOS
-              </span>
-              <ImageUploadSlot
-                id="objetos"
-                placeholderIcon={<Film className="w-8 h-8 text-sky-600 animate-pulse" />}
-                placeholderBg="bg-sky-100"
-                iconColor="text-sky-600"
-                title="Espacio para Foto / Video"
-                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
-                uploadedImages={uploadedImages}
-                onUpload={handleImageUpload}
-                onRemove={handleRemoveImage}
-              />
-              <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
-                El bazar abierto al juego, la construcción y los encuentros creativos. 🪵
-              </p>
-            </div>
-          </section>
-
           {/* EL GRAN DESEO DE LOS RESIDENTES */}
           <section className="space-y-6">
             <h3 className="text-3xl md:text-4xl font-black uppercase text-left tracking-tight border-b-4 border-black pb-2 flex items-center gap-2">
@@ -1170,38 +1122,22 @@ export default function Edition09() {
             </h3>
 
             <div className="border-4 border-black p-5 md:p-8 bg-amber-50 rounded-3xl shadow-[6px_6px_0px_black] space-y-6">
-              <div className="flex flex-col md:flex-row gap-6 items-center">
-                <div className="space-y-4 md:w-3/5">
-                  <span className="bg-amber-400 text-black font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block">
-                    🪵 EXPLANADAS DE AFUERA
-                  </span>
-                  <h4 className="text-2xl font-black uppercase text-stone-900 leading-none">
-                    Estructuras de madera y papelitos de sueños
-                  </h4>
-                  <p className="text-xs md:text-sm font-bold leading-relaxed text-stone-700 uppercase">
-                    En las explanadas de afuera, los residentes armaron unos tableros con estructuras de madera (parecidos a los de la verdulería, pero sin los cajones). Ahí te daban un papelito para responder la pregunta: 
-                  </p>
-                  <p className="text-sm font-black text-rose-600 bg-white border-2 border-dashed border-rose-500 p-3 rounded-xl uppercase shadow-[2.5px_2.5px_0px_rgba(244,63,94,0.2)]">
-                    ¿Qué querés que siga existiendo siempre?
-                  </p>
-                  <p className="text-xs md:text-sm font-semibold italic text-stone-600">
-                    Y la respuesta que emocionó a todos en Coronel Dorrego fue rotunda, grabada con muchísima fuerza: <strong>¡Que el Alero siga existiendo siempre!</strong> ❤️
-                  </p>
-                </div>
-
-                <div className="w-full md:w-2/5">
-                  <ImageUploadSlot
-                    id="community4"
-                    placeholderIcon={<Camera className="w-6 h-6 text-rose-600 animate-pulse" />}
-                    placeholderBg="bg-rose-100"
-                    iconColor="text-rose-600"
-                    title="Foto / Video"
-                    subtitle="Muy pronto... 🎬"
-                    uploadedImages={uploadedImages}
-                    onUpload={handleImageUpload}
-                    onRemove={handleRemoveImage}
-                  />
-                </div>
+              <div className="space-y-4">
+                <span className="bg-amber-400 text-black font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block">
+                  🪵 EXPLANADAS DE AFUERA
+                </span>
+                <h4 className="text-2xl font-black uppercase text-stone-900 leading-none">
+                  Estructuras de madera y papelitos de sueños
+                </h4>
+                <p className="text-xs md:text-sm font-bold leading-relaxed text-stone-700 uppercase">
+                  En las explanadas de afuera, los residentes armaron unos tableros con estructuras de madera (parecidos a los de la verdulería, pero sin los cajones). Ahí te daban un papelito para responder la pregunta: 
+                </p>
+                <p className="text-sm font-black text-rose-600 bg-white border-2 border-dashed border-rose-500 p-3 rounded-xl uppercase shadow-[2.5px_2.5px_0px_rgba(244,63,94,0.2)]">
+                  ¿Qué querés que siga existiendo siempre?
+                </p>
+                <p className="text-xs md:text-sm font-semibold italic text-stone-600">
+                  Y la respuesta que emocionó a todos en Coronel Dorrego fue rotunda, grabada con muchísima fuerza: <strong>¡Que el Alero siga existiendo siempre!</strong> ❤️
+                </p>
               </div>
 
               <button
@@ -1225,15 +1161,15 @@ export default function Edition09() {
                 ESCENARIO PRINCIPAL A TODO TRAPO
               </span>
               
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                <div className="md:col-span-5 space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="lg:col-span-3 space-y-3">
                   <ImageUploadSlot
                     id="escenario"
                     placeholderIcon={<Music className="w-8 h-8 text-rose-600 animate-pulse" />}
                     placeholderBg="bg-rose-100"
                     iconColor="text-rose-600"
-                    title="Foto del Escenario Principal"
-                    subtitle="El Alero vibrando con música y baile"
+                    title="Foto del Escenario"
+                    subtitle="El Alero vibrando"
                     uploadedImages={uploadedImages}
                     onUpload={handleImageUpload}
                     onRemove={handleRemoveImage}
@@ -1243,20 +1179,112 @@ export default function Edition09() {
                   {/* Highly visible callout banner next to/under the image */}
                   <div className="bg-amber-100 border-4 border-dashed border-amber-500 p-3 rounded-2xl shadow-[2px_2px_0px_black] text-left">
                     <p className="text-[11px] font-black text-amber-950 uppercase tracking-tight flex items-center gap-1">
-                      📸 ¡SUBÍ TU PROPIA FOTO!
+                      📸 ¡SUBÍ TU FOTO!
                     </p>
                     <p className="text-[10px] font-extrabold text-stone-800 mt-1 leading-normal">
-                      o también puedes añadir una foto desde tu celular o computadora haciendo clic en la imagen del escenario.
+                      Hacé clic arriba para subir fotos de la fiesta desde tu dispositivo.
                     </p>
                   </div>
                 </div>
 
-                <div className="md:col-span-7 space-y-4">
+                {/* Desktop Computer Style Widescreen Video Player */}
+                <div className="lg:col-span-5 space-y-3">
+                  <div className="border-4 border-black bg-white rounded-3xl shadow-[5px_5px_0px_black] overflow-hidden flex flex-col relative">
+                    {/* Mock Computer Titlebar */}
+                    <div className="bg-stone-100 border-b-4 border-black px-4 py-2 flex items-center justify-between gap-2" data-html2canvas-ignore="true">
+                      <div className="flex gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-black inline-block"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 border-2 border-black inline-block"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-black inline-block"></span>
+                      </div>
+                      <div className="bg-white border-2 border-black rounded px-2 py-0.5 text-[8px] font-mono text-stone-500 w-full max-w-[220px] truncate text-center select-none shadow-[1px_1px_0px_rgba(0,0,0,0.15)]">
+                        🌐 screenapp.io/library/10-anos-alero
+                      </div>
+                      <div className="w-10"></div>
+                    </div>
+
+                    <div className="p-4 space-y-3 text-center">
+                      <span className="bg-red-600 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block animate-pulse">
+                        📺 COBERTURA EN VIVO
+                      </span>
+                      <h4 className="font-black text-sm uppercase leading-none text-rose-950">Festejo en Movimiento</h4>
+                      
+                      {/* Responsive Mock Computer Screen Video Wrapper */}
+                      <div className="aspect-video w-full border-4 border-black rounded-2xl overflow-hidden relative shadow-[3px_3px_0px_black] bg-stone-950 flex items-center justify-center">
+                        {uploadedImages["cumple_video"] ? (
+                          <video 
+                            key={uploadedImages["cumple_video"]}
+                            controls 
+                            playsInline 
+                            className="w-full h-full object-contain"
+                          >
+                            <source src={uploadedImages["cumple_video"]} />
+                            Tu navegador no soporta reproducción de video.
+                          </video>
+                        ) : (
+                          <iframe
+                            src="https://screenapp.io/app/#/library/69cf0069099145fdc5936b88/default/d6a29d02-74b2-4d80-ac45-9955fabd80cc"
+                            title="El Alero Festejo Video"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="absolute inset-0 w-full h-full"
+                          ></iframe>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 pt-1" data-html2canvas-ignore="true">
+                        <input 
+                          type="file" 
+                          id="video-upload-input" 
+                          className="hidden" 
+                          accept="video/mp4,video/*" 
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleImageUpload("cumple_video", file);
+                            }
+                          }}
+                        />
+                        
+                        <div className="flex justify-center gap-1.5">
+                          <button
+                            onClick={() => document.getElementById("video-upload-input")?.click()}
+                            className="bg-yellow-400 hover:bg-yellow-300 text-black border-2 border-black px-2.5 py-1 text-[9px] font-black uppercase rounded shadow-[1.5px_1.5px_0px_black] active:translate-y-0.5 active:shadow-none cursor-pointer flex items-center gap-1"
+                          >
+                            📹 {uploadedImages["cumple_video"] ? "Cambiar Video" : "Subir Propio (MP4)"}
+                          </button>
+                          
+                          {uploadedImages["cumple_video"] && (
+                            <button
+                              onClick={() => handleRemoveImage("cumple_video")}
+                              className="bg-red-500 hover:bg-red-400 text-white border-2 border-black px-2 py-1 text-[9px] font-black uppercase rounded shadow-[1.5px_1.5px_0px_black] active:translate-y-0.5 active:shadow-none cursor-pointer"
+                            >
+                              🗑️ Reset
+                            </button>
+                          )}
+                        </div>
+                        
+                        <p className="text-[8px] font-mono font-bold text-stone-500 uppercase leading-tight">
+                          {uploadedImages["cumple_video"] ? "Video guardado en el servidor con éxito" : "Subí tu propio video MP4 para guardarlo de forma permanente"}
+                        </p>
+                      </div>
+
+                      {!uploadedImages["cumple_video"] && (
+                        <p className="text-[10px] font-bold text-stone-600 uppercase">
+                          ¡Mirá el festejo del cumple! 🥳🎉
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-4 space-y-4">
                   <p className="text-sm font-bold text-stone-700 leading-relaxed uppercase text-justify">
                     Las explanadas se llenaron de gente de punta a punta y el escenario principal vibró con dos propuestas espectaculares para bailar con el alma:
                   </p>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div 
                       onClick={() => playSynthTone("coin")}
                       className="border-2 border-black p-4 bg-white rounded-2xl shadow-[2.5px_2.5px_0px_black] text-left hover:-translate-y-1 transition-transform cursor-pointer group"
@@ -1397,30 +1425,6 @@ export default function Edition09() {
               >
                 <AudioLines className="w-3.5 h-3.5" /> Escuchar crónica del cierre
               </button>
-            </div>
-          </section>
-
-          {/* 3:4 COMMUNITY IMAGE 5 (CLOSING) */}
-          <section className="relative group max-w-2xl mx-auto">
-            <div className="absolute inset-0 bg-rose-100 translate-x-3 translate-y-3 rounded-3xl border-4 border-dashed border-rose-300"></div>
-            <div className="relative border-4 border-black p-4 bg-white rounded-3xl shadow-[6px_6px_0px_black] text-left">
-              <span className="bg-rose-500 text-white font-mono text-[8px] font-black px-2.5 py-1 rounded uppercase shadow-[1.5px_1.5px_0px_black] inline-block mb-3">
-                📷 POSTAL DEL GRAN CIERRE
-              </span>
-              <ImageUploadSlot
-                id="cierre"
-                placeholderIcon={<Film className="w-8 h-8 text-rose-600 animate-pulse" />}
-                placeholderBg="bg-rose-100"
-                iconColor="text-rose-600"
-                title="Espacio para Foto / Video"
-                subtitle="¡Muy pronto subiremos los mejores momentos! 🎬"
-                uploadedImages={uploadedImages}
-                onUpload={handleImageUpload}
-                onRemove={handleRemoveImage}
-              />
-              <p className="text-xs font-bold text-stone-600 mt-3 text-center uppercase tracking-tight italic">
-                La alegría multiplicada, el abrazo infinito de todo el barrio de Coronel Dorrego. ❤️
-              </p>
             </div>
           </section>
 

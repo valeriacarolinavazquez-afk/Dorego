@@ -1157,6 +1157,9 @@ export default function App() {
 
     // Simple OKLAB and OKLCH to RGB converter for html2canvas compatibility
     const oklabToRgb = (L: number, a: number, b: number, alpha?: number): string => {
+      if (isNaN(L) || isNaN(a) || isNaN(b)) {
+        return 'rgb(128, 128, 128)';
+      }
       const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
       const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
       const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
@@ -1174,13 +1177,20 @@ export default function App() {
       const g8 = Math.round(clamp(g <= 0.0031308 ? 12.92 * g : 1.055 * Math.pow(g, 1 / 2.4) - 0.055) * 255);
       const b8 = Math.round(clamp(b_ <= 0.0031308 ? 12.92 * b_ : 1.055 * Math.pow(b_, 1 / 2.4) - 0.055) * 255);
       
-      if (alpha !== undefined && alpha !== 1) {
+      if (isNaN(r8) || isNaN(g8) || isNaN(b8)) {
+        return 'rgb(128, 128, 128)';
+      }
+
+      if (alpha !== undefined && !isNaN(alpha) && alpha !== 1) {
         return `rgba(${r8}, ${g8}, ${b8}, ${alpha})`;
       }
       return `rgb(${r8}, ${g8}, ${b8})`;
     };
 
     const oklchToRgb = (l: number, c: number, h: number, a?: number): string => {
+      if (isNaN(l) || isNaN(c) || isNaN(h)) {
+        return 'rgb(128, 128, 128)';
+      }
       const hRad = (h * Math.PI) / 180;
       const a_ = c * Math.cos(hRad);
       const b_ = c * Math.sin(hRad);
@@ -1189,12 +1199,13 @@ export default function App() {
 
     const replaceOklchString = (str: any): any => {
       if (typeof str !== 'string') return str;
-      if (!str.includes('oklch') && !str.includes('oklab')) return str;
+      const lower = str.toLowerCase();
+      if (!lower.includes('oklch') && !lower.includes('oklab')) return str;
       
       let res = str;
 
-      if (res.includes('oklch')) {
-        res = res.replace(/oklch\(([^)]+)\)/g, (match, content) => {
+      if (lower.includes('oklch')) {
+        res = res.replace(/oklch\(([^)]+)\)/gi, (match, content) => {
           const parts = content.trim().split(/[\s,/]+/);
           if (parts.length >= 3) {
             const lVal = parts[0];
@@ -1224,8 +1235,8 @@ export default function App() {
         });
       }
 
-      if (res.includes('oklab')) {
-        res = res.replace(/oklab\(([^)]+)\)/g, (match, content) => {
+      if (lower.includes('oklab')) {
+        res = res.replace(/oklab\(([^)]+)\)/gi, (match, content) => {
           const parts = content.trim().split(/[\s,/]+/);
           if (parts.length >= 3) {
             const lVal = parts[0];
@@ -1264,7 +1275,7 @@ export default function App() {
     const restoredInlineStyles: { element: HTMLElement; prop: string; value: string; priority: string }[] = [];
     const restoredCSSRules: { rule: CSSStyleRule; prop: string; value: string; priority: string }[] = [];
     const temporaryStylesheets: HTMLStyleElement[] = [];
-    const restoredLinkStates: { element: HTMLLinkElement; disabled: boolean }[] = [];
+    const restoredLinkStates: { element: HTMLLinkElement; disabled: boolean; rel: string }[] = [];
 
     // Temporarily replace OKLCH/OKLAB in all <style> tags on the page
     // This removes oklch/oklab from stylesheets parsed by html2canvas
@@ -1340,9 +1351,10 @@ export default function App() {
               document.head.appendChild(tempStyle);
               temporaryStylesheets.push(tempStyle);
 
-              // Disable original link tag
-              restoredLinkStates.push({ element: link, disabled: link.disabled });
+              // Disable original link tag and change rel to prevent html2canvas from fetching it
+              restoredLinkStates.push({ element: link, disabled: link.disabled, rel: link.rel });
               link.disabled = true;
+              link.rel = 'disabled-stylesheet';
             }
           }
         } catch (fetchErr) {
@@ -1432,10 +1444,11 @@ export default function App() {
         }
       });
 
-      // Restore original <link> tag disabled statuses
-      restoredLinkStates.forEach(({ element, disabled }) => {
+      // Restore original <link> tag disabled statuses and rel attributes
+      restoredLinkStates.forEach(({ element, disabled, rel }) => {
         if (element) {
           element.disabled = disabled;
+          element.rel = rel;
         }
       });
 
