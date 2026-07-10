@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Edition07 from "./components/Edition07";
 import Edition08 from "./components/Edition08";
 import Edition09 from "./components/Edition09";
+import Edition10 from "./components/Edition10";
 import { 
   Menu,
   X,
@@ -1135,9 +1136,9 @@ export default function App() {
   const [edition, setEdition] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('el_dorrego_edition');
-      return saved ? parseInt(saved) : 9;
+      return saved ? parseInt(saved) : 10;
     }
-    return 9;
+    return 10;
   });
 
   useEffect(() => {
@@ -1566,6 +1567,12 @@ export default function App() {
                 >
                   💥 Vol. 9
                 </button>
+                <button 
+                  onClick={() => toggleEdition(10)}
+                  className={`border p-1 text-[9px] font-black uppercase transition-colors ${edition === 10 ? 'bg-amber-400 text-black border-amber-400 font-extrabold shadow-[2px_2px_0px_rgba(251,191,36,0.3)]' : 'border-white/20 hover:border-white'}`}
+                >
+                  ☃️ Vol. 10
+                </button>
               </div>
             </div>
 
@@ -1633,6 +1640,12 @@ export default function App() {
                   <a href="#buzon-ed9" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-teal-400 transition-colors border-b border-white/10 pb-1">✍️ Mural de Deseos</a>
                 </>
               )}
+              {edition === 10 && (
+                <>
+                  <a href="#inicio-ed10" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-yellow-400 transition-colors border-b border-white/10 pb-1 text-yellow-300 animate-pulse">📰 Portada Vol. 10</a>
+                  <a href="#buzon-ed10" onClick={() => setShowMenu(false)} className="block text-sm font-bold uppercase hover:text-amber-400 transition-colors border-b border-white/10 pb-1">✍️ Mural de Deseos</a>
+                </>
+              )}
             </nav>
           </motion.div>
         )}
@@ -1655,6 +1668,7 @@ export default function App() {
           {edition === 7 && <Edition07 />}
           {edition === 8 && <Edition08 />}
           {edition === 9 && <Edition09 />}
+          {edition === 10 && <Edition10 />}
         </div>
 
         {/* Centro de Descarga de PDF / Guardado */}
